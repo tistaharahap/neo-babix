@@ -54,6 +54,8 @@ class VWMAStrategy(Strategy):
             return Actions.SHORT
 ```
 
+A more robust strategy can be found [here](neobabix/strategies/wisewilliams.py).
+
 ## Environment Variables
 
 | Name | Description |
