@@ -33,8 +33,7 @@ class WiseWilliams(Strategy):
         self.ac = AccelerationDecelerationOscillator(hl2)
 
     def filter(self) -> Actions:
-        valid_mfi = self.mfi[-1] == MFI_GREEN or self.mfi[-1] == MFI_RED
-        mfi_is_gray = self.mfi[-1] == MFI_GRAY
+        valid_mfi = self.mfi[-1] == MFI_GREEN
 
         ac_is_blue = self.ac[-1] > self.ac[-2]
         ac_is_red = self.ac[-1] < self.ac[-2]
@@ -61,7 +60,6 @@ class WiseWilliams(Strategy):
         self.debug(f'AO is Red: {ao_is_red}')
         self.debug(f'Alligator is Short: {alligator_is_short}')
         self.debug(f'AO Negative: {ao_negative}')
-        self.debug(f'MFI is Gray: {mfi_is_gray}')
 
         go_long = valid_mfi and ac_is_blue and ao_is_green and alligator_is_long and ao_positive
         go_short = valid_mfi and ac_is_red and ao_is_red and alligator_is_short and ao_negative

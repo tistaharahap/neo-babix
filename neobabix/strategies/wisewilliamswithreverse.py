@@ -33,7 +33,7 @@ class WiseWilliams(Strategy):
         self.ac = AccelerationDecelerationOscillator(hl2)
 
     def filter(self) -> Actions:
-        valid_mfi = self.mfi[-1] == MFI_GREEN or self.mfi[-1] == MFI_RED
+        valid_mfi = self.mfi[-1] == MFI_GREEN
         mfi_is_gray = self.mfi[-1] == MFI_GRAY
 
         ac_is_blue = self.ac[-1] > self.ac[-2]
