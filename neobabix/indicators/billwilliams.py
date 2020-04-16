@@ -1,6 +1,5 @@
-import pandas as pd
-import talib as ta
 import numpy as np
+import talib as ta
 
 from neobabix.indicators.alligator import WilliamsIndicators
 
@@ -10,7 +9,7 @@ MFI_YELLOW = 3
 MFI_GRAY = 4
 
 
-def WilliamsAlligatorJaws(highs: pd.Series, lows: pd.Series) -> pd.Series:
+def WilliamsAlligatorJaws(highs: np.ndarray, lows: np.ndarray) -> np.ndarray:
     wi = WilliamsIndicators()
 
     jaws = wi.SMMA(highs=highs,
@@ -21,10 +20,10 @@ def WilliamsAlligatorJaws(highs: pd.Series, lows: pd.Series) -> pd.Series:
     for i in range(0, 5):
         jaws[i] = lows[0]
 
-    return pd.Series(jaws)
+    return np.array(jaws)
 
 
-def WilliamsAlligatorTeeth(highs: pd.Series, lows: pd.Series) -> pd.Series:
+def WilliamsAlligatorTeeth(highs: np.ndarray, lows: np.ndarray) -> np.ndarray:
     wi = WilliamsIndicators()
 
     teeth = wi.SMMA(highs=highs,
@@ -35,10 +34,10 @@ def WilliamsAlligatorTeeth(highs: pd.Series, lows: pd.Series) -> pd.Series:
     for i in range(0, 5):
         teeth[i] = lows[0]
 
-    return pd.Series(teeth)
+    return np.array(teeth)
 
 
-def WilliamsAlligatorLips(highs: pd.Series, lows: pd.Series) -> pd.Series:
+def WilliamsAlligatorLips(highs: np.ndarray, lows: np.ndarray) -> np.ndarray:
     wi = WilliamsIndicators()
 
     lips = wi.SMMA(highs=highs,
@@ -49,12 +48,12 @@ def WilliamsAlligatorLips(highs: pd.Series, lows: pd.Series) -> pd.Series:
     for i in range(0, 5):
         lips[i] = lows[0]
 
-    return pd.Series(lips)
+    return np.array(lips)
 
 
-def UpFractal(highs: pd.Series) -> pd.Series:
+def UpFractal(highs: np.ndarray) -> np.ndarray:
     def _fractal(high, n):
-        if n + 3 > len(highs):
+        if n < 6 or n < len(highs):
             return None
 
         up1 = ((highs[n-2] < highs[n]) and (highs[n-1] < highs[n])
@@ -75,12 +74,12 @@ def UpFractal(highs: pd.Series) -> pd.Series:
 
     fractals = [_fractal(x, i) for i, x in enumerate(highs)]
 
-    return pd.Series(fractals, name="Up Fractal")
+    return np.array(fractals)
 
 
-def DownFractal(lows: pd.Series) -> pd.Series:
+def DownFractal(lows: np.ndarray) -> np.ndarray:
     def _fractal(low, n):
-        if n + 3 > len(lows):
+        if n < 6 or n > len(lows):
             return None
 
         low1 = ((lows[n-2] > lows[n]) and (lows[n-1] > lows[n])
@@ -101,11 +100,14 @@ def DownFractal(lows: pd.Series) -> pd.Series:
 
     fractals = [_fractal(x, i) for i, x in enumerate(lows)]
 
-    return pd.Series(fractals)
+    return np.array(fractals)
 
 
-def MFI(highs: pd.Series, lows: pd.Series, volumes: pd.Series) -> pd.Series:
+def MFI(highs: np.ndarray, lows: np.ndarray, volumes: np.ndarray) -> np.ndarray:
     def _mfi(n):
+        if n < 2:
+            return None
+
         MFI0 = (highs[n] - lows[n]) / volumes[n]
         MFI1 = (highs[n-1] - lows[n-1]) / volumes[n-1]
         MFIplus = MFI0 > MFI1
@@ -131,19 +133,19 @@ def MFI(highs: pd.Series, lows: pd.Series, volumes: pd.Series) -> pd.Series:
 
     mfis = [_mfi(i) for i, x in enumerate(highs)]
 
-    return pd.Series(mfis)
+    return np.array(mfis)
 
 
-def AwesomeOscillator(sources: pd.Series) -> pd.Series:
+def AwesomeOscillator(sources: np.ndarray) -> np.ndarray:
     fastMA = ta.SMA(sources, 5)
     slowMA = ta.SMA(sources, 34)
-    ao = pd.Series(np.array(fastMA)-np.array(slowMA))
+    ao = np.array(fastMA) - np.array(slowMA)
     return ao
 
 
-def AccelerationDecelerationOscillator(sources: pd.Series) -> pd.Series:
+def AccelerationDecelerationOscillator(sources: np.ndarray) -> np.ndarray:
     ao = AwesomeOscillator(sources)
     aoMA = ta.SMA(ao, 5)
-    ac = pd.Series(np.array(ao)-np.array(aoMA))
+    ac = np.array(ao) - np.array(aoMA)
     return ac
 
