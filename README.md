@@ -21,6 +21,39 @@ NeoBabix is built based on assumptions and facts we have developed:
 * Codes written are mostly typed
 * Built with concurrency in mind using [asyncio](https://docs.python.org/3/library/asyncio.html) and [uvloop](https://github.com/MagicStack/uvloop)
 
+## Strategy
+
+This outlines how NeoBabix interpret OHLCV data and maps them into actions. Actions are `Long` `Short` and `Nothing`.
+
+Every strategy must be derived from the `neobabix.strategies.strategy.Strategy` base class. The base class has an abstract method `filter() -> Actions` that must be implemented by the child class.
+
+On every tick, NeoBabix core will call the `filter` method. Here's an example strategy to go long when prices are below VWMA and short otherwise. Of course this is a very silly example.
+
+```python
+import numpy as np
+
+from logging import Logger
+from neobabix.strategies.strategy import Strategy, Actions
+from neobabix.indicators.movingaverages import VWMA
+
+
+class VWMAStrategy(Strategy):
+    def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray, logger: Logger):
+        super().__init__(opens, highs, lows, closes, volumes, logger)
+        
+        self.vwma21 = VWMA(closes=closes,
+                           volumes=volumes,
+                           period=21)
+
+    def filter(self) -> Actions:
+        closed_below_vwma = self.closes[-1] < self.vwma21[-1]
+        
+        if closed_below_vwma:
+            return Actions.LONG
+        else:
+            return Actions.SHORT
+```
+
 ## Environment Variables
 
 | Name | Description |
