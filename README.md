@@ -56,6 +56,12 @@ class VWMAStrategy(Strategy):
 
 A more robust strategy can be found [here](neobabix/strategies/wisewilliams.py).
 
+## Playbooks
+
+Playbooks are how entries and exits are managed. You can do staggered entries, staggered exits or just plain entry with an exit take profit order after entering a trade.
+
+Pivot exits are also supported, ex: when a long entry is stopped by prices going down, a subsequent short entry can be made. These type of entries will call exhange API's quite frequent, rate limit should be observed. 
+
 ## Environment Variables
 
 | Name | Description |
