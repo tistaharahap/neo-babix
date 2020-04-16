@@ -66,8 +66,8 @@ def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h', trade_on_cl
     }
 
 
-def get_strategy(strategy: str) -> Type[WiseWilliams]:
-    strategies: Dict[str, Type[WiseWilliams]] = {
+def get_strategy(strategy: str) -> Type[Strategy]:
+    strategies: Dict[str, Type[Strategy]] = {
         'WiseWilliams': WiseWilliams
     }
 
