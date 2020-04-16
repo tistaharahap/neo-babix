@@ -21,6 +21,40 @@ NeoBabix is built based on assumptions and facts we have developed:
 * Codes written are mostly typed
 * Built with concurrency in mind using [asyncio](https://docs.python.org/3/library/asyncio.html) and [uvloop](https://github.com/MagicStack/uvloop)
 
+## Environment Variables
+
+| Name | Description |
+| :--- | :--- |
+| `CANDLES_EXCHANGE` | Exchange from which we get OHLCV data, defaults to `bitfinex` |
+| `TRADES_EXCHANGE` | Exchange where we trade, defaults to `binance` |
+| `API_KEY` | Traded exchange API key, defaults to `*blank*` |
+| `API_SECRET` | Traded exchange API secret, defaults to `*blank*` |
+| `STRATEGY` | Strategy used to map OHLCV into Actions, defaults to `WiseWilliams` |
+| `SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
+| `TRADE_ON_CLOSE` | Decides whether to trade based on the current candle or the previous candle, defaults to `1` |
+| `DEBUG` | Will show debug messages when enabled, defaults to `1` |
+
+## Running
+
+### Run Locally
+
+Please use `virtualenv` to run locally.
+
+```shell
+$ sudo pip install virtualenv
+$ virtualenv -p python3 env
+$ . env/bin/activate
+$ pip install -r requirements.txt # Install deps
+```
+
+To run locally, copy the `run-local.sh.example` to `run-local.sh`. Open the file on an editor and fill in the values.
+
+```shell
+$ cp run-local.sh.example run-local.sh
+$ chmod +x run-local.sh
+$ vim run-local.sh # Fill in the values
+```
+
 ## Contributors
 
 The first `WiseWilliams` strategy was discovered by [@patrixsk](https://github.com/patrixsk), refined by [@tista](https://twitter.com/tista) and [@bagindafuq](https://twitter.com/bagindafuq). The strategy kickstarted the initial effort to write this bot.

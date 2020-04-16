@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+export CANDLES_EXCHANGE="bitfinex"
+export TRADES_EXCHANGE="binance"
+export API_KEY=""
+export API_SECRET=""
+export STRATEGY="WiseWilliams"
+export SYMBOL="BTC/USD"
+export TRADE_ON_CLOSE="1"
+export DEBUG="1"
+
+. env/bin/activate
+python app.py
