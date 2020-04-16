@@ -14,7 +14,8 @@ API_KEY = environ.get('API_KEY', '')
 API_SECRET = environ.get('API_SECRET', '')
 STRATEGY = environ.get('STRATEGY', 'WiseWilliams')
 TIMEFRAME = '1h'
-SYMBOL = 'BTC/USD'
+SYMBOL = environ.get('SYMBOL', 'BTC/USD')
+TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
 
 logger = get_logger()
 
@@ -34,7 +35,7 @@ def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None) 
     return exc()
 
 
-def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h') -> Dict[str, np.ndarray]:
+def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h', trade_on_close: bool = True) -> Dict[str, np.ndarray]:
     client = get_ccxt_client(exchange=exchange)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
@@ -48,6 +49,13 @@ def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h') -> Dict[str
     lows = list(map(lambda x: x[3], ohlcv))
     closes = list(map(lambda x: x[4], ohlcv))
     volumes = list(map(lambda x: x[5], ohlcv))
+
+    if trade_on_close:
+        opens.pop(1)
+        highs.pop(1)
+        lows.pop(1)
+        closes.pop(1)
+        volumes.pop(1)
 
     return {
         'opens': np.array(opens),
@@ -72,10 +80,14 @@ def get_strategy(strategy: str) -> Type[WiseWilliams]:
 def tick():
     logger.info('<< Tick has started >>')
 
+    trade_on_close = True if TRADE_ON_CLOSE == '1' else False
+    logger.info(f'Trade on Close: {trade_on_close}')
+
     logger.info(f'Fetching candles from {CANDLES_EXCHANGE.title()}')
     candles = fetch_candles(symbol=SYMBOL,
                             exchange=CANDLES_EXCHANGE,
-                            timeframe=TIMEFRAME)
+                            timeframe=TIMEFRAME,
+                            trade_on_close=trade_on_close)
 
     logger.info(f'Using strategy: {STRATEGY}')
     strategy_type = get_strategy(strategy=STRATEGY)
