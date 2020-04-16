@@ -11,6 +11,8 @@ class Actions(enum.Enum):
 
 
 class Strategy(ABC):
+    __name__ = 'Neobabix Strategy'
+
     def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray, logger: Logger):
         self.opens = opens
         self.highs = highs
@@ -20,7 +22,7 @@ class Strategy(ABC):
         self.logger = logger
 
     def debug(self, message):
-        self.logger.debug(f'{__name__}: {message}')
+        self.logger.debug(f'{self.__name__}: {message}')
 
     @abstractmethod
     def filter(self) -> Actions:
