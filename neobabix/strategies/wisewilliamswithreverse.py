@@ -8,7 +8,7 @@ from .strategy import Strategy, Actions
 
 
 class WiseWilliams(Strategy):
-    __name__ = 'WiseWilliams Strategy'
+    __name__ = 'WiseWilliamsWithReverse Strategy'
 
     def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray, logger: Logger):
         super().__init__(opens, highs, lows, closes, volumes, logger)
@@ -66,12 +66,17 @@ class WiseWilliams(Strategy):
         go_long = valid_mfi and ac_is_blue and ao_is_green and alligator_is_long and ao_positive
         go_short = valid_mfi and ac_is_red and ao_is_red and alligator_is_short and ao_negative
 
+        reversed_long = mfi_is_gray and ac_is_red and ao_is_red and alligator_is_short and ao_negative
+        reversed_short = mfi_is_gray and ac_is_blue and ao_is_green and alligator_is_long and ao_positive
+
         self.debug(f'Go Long: {go_long}')
         self.debug(f'Go Short: {go_short}')
+        self.debug(f'Reversed Long: {reversed_long}')
+        self.debug(f'Reversed Short: {reversed_short}')
 
-        if go_long:
+        if go_long or reversed_long:
             return Actions.LONG
-        elif go_short:
+        elif go_short or reversed_short:
             return Actions.SHORT
         else:
             return Actions.NOTHING

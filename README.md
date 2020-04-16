@@ -25,7 +25,7 @@ NeoBabix is built based on assumptions and facts we have developed:
 
 The first `WiseWilliams` strategy was discovered by [@patrixsk](https://github.com/patrixsk), refined by [@tista](https://twitter.com/tista) and [@bagindafuq](https://twitter.com/bagindafuq). The strategy kickstarted the initial effort to write this bot.
 
-Portions of the codes was adopted from these people:
+Portions of the codes were adopted from these people:
 
 * [Rifky Ali](https://www.instagram.com/rifkyali.kiki/)
 * [@tolkoton](https://github.com/Tolkoton/WilliamsIndicators)
