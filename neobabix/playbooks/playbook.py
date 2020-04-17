@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 from ccxt.base.exchange import Exchange
 from asyncio import Lock
 from logging import Logger
 
 
-class Playbook(object):
+class Playbook(ABC):
     __name__ = 'Neobabix Playbook'
 
     def __init__(self, exchange: Exchange, trade_lock: Lock, logger: Logger):
@@ -13,6 +14,22 @@ class Playbook(object):
 
         # Acquire lock immediately
         self.trade_lock.acquire()
+
+    @abstractmethod
+    def entry(self):
+        pass
+
+    @abstractmethod
+    def after_entry(self):
+        pass
+
+    @abstractmethod
+    def exit(self):
+        pass
+
+    @abstractmethod
+    def after_exit(self):
+        pass
 
     def info(self, message):
         self.logger.info(f'{self.__name__}: {message}')
