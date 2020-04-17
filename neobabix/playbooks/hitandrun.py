@@ -10,18 +10,18 @@ class HitAndRun(Playbook):
         Entry:
             - Buy asset using market order
         Exit:
-            - Immediately send an exit limit order at a predetermined percentage
-            - Immediately send a stop limit order at a predetermined percentage
+            - Immediately send an exit limit order at a predetermined percentage based on the buying price + fee
+            - Immediately send a stop limit order at a predetermined percentage based on the buying price
     """
 
-    def entry(self):
+    async def entry(self):
         pass
 
-    def after_entry(self):
+    async def after_entry(self):
         pass
 
-    def exit(self):
+    async def exit(self):
         pass
 
-    def after_exit(self):
+    async def after_exit(self):
         pass
