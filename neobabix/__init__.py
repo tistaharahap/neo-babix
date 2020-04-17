@@ -1,5 +1,6 @@
 from os import environ
 from typing import Dict, Type
+from asyncio import Lock
 
 import ccxt
 import numpy as np
@@ -78,7 +79,22 @@ def get_strategy(strategy: str) -> Type[Strategy]:
     return strategies.get(strategy)
 
 
-async def tick():
+async def route_actions(action: Actions, trade_lock: Lock):
+    if action == Actions.SHORT:
+        logger.info('Signal suggests short!')
+    elif action == Actions.LONG:
+        logger.info('Signal suggests long!')
+    elif action == Actions.NOTHING:
+        logger.info('Signal suggests doing nothing..')
+
+    if trade_lock.locked():
+        logger.info('There is an ongoing trade, bailing out')
+        return
+
+    logger.info('There is no ongoing trade, we can instantiate a playbook if applicable')
+
+
+async def tick(trade_lock: Lock):
     logger.info('<< Tick has started >>')
 
     trade_on_close = True if TRADE_ON_CLOSE == '1' else False
@@ -102,11 +118,9 @@ async def tick():
 
     logger.info('Filtering for entry actions')
     action = strategy.filter()
-    if action == Actions.SHORT:
-        logger.info('Going short!')
-    elif action == Actions.LONG:
-        logger.info('Going long!')
-    elif action == Actions.NOTHING:
-        logger.info('Doing nothing..')
+
+    logger.info('Routing actions')
+    await route_actions(action=action,
+                        trade_lock=trade_lock)
 
     logger.info('<< Tick has ended >>')
