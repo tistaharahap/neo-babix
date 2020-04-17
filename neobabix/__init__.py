@@ -35,7 +35,8 @@ def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None) 
     return exc()
 
 
-def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h', trade_on_close: bool = True) -> Dict[str, np.ndarray]:
+async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h', trade_on_close: bool = True) -> Dict[
+    str, np.ndarray]:
     client = get_ccxt_client(exchange=exchange)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
@@ -77,17 +78,17 @@ def get_strategy(strategy: str) -> Type[Strategy]:
     return strategies.get(strategy)
 
 
-def tick():
+async def tick():
     logger.info('<< Tick has started >>')
 
     trade_on_close = True if TRADE_ON_CLOSE == '1' else False
     logger.info(f'Trade on Close: {trade_on_close}')
 
     logger.info(f'Fetching candles from {CANDLES_EXCHANGE.title()}')
-    candles = fetch_candles(symbol=SYMBOL,
-                            exchange=CANDLES_EXCHANGE,
-                            timeframe=TIMEFRAME,
-                            trade_on_close=trade_on_close)
+    candles = await fetch_candles(symbol=SYMBOL,
+                                  exchange=CANDLES_EXCHANGE,
+                                  timeframe=TIMEFRAME,
+                                  trade_on_close=trade_on_close)
 
     logger.info(f'Using strategy: {STRATEGY}')
     strategy_type = get_strategy(strategy=STRATEGY)
