@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from ccxt.base.exchange import Exchange
 from asyncio import Lock
 from logging import Logger
+from neobabix.strategies.strategy import Actions
 
 import ccxt
 
@@ -20,8 +21,8 @@ class Playbook(ABC):
             - Bybit
     """
 
-    def __init__(self, trade_mode: str, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str, timeframe: str, modal_duid: str, recursive: bool = False, leverage: int = None):
-        self.trade_mode = trade_mode
+    def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str, timeframe: str, modal_duid: str, recursive: bool = False, leverage: int = None):
+        self.action = action
         self.exchange = exchange
         self.trade_lock = trade_lock
         self.logger = logger

@@ -1,4 +1,5 @@
 from neobabix.playbooks.playbook import Playbook
+from neobabix.strategies.strategy import Actions
 
 
 class HitAndRun(Playbook):
@@ -20,12 +21,14 @@ class HitAndRun(Playbook):
             self.info(f'Setting leverage to {self.leverage}x')
             await self.set_leverage(leverage=self.leverage)
 
-        if self.trade_mode == 'long':
+        if self.action == Actions.LONG:
             self.info('Entering a LONG position')
             result = self.market_buy_order(amount=self.modal_duid)
-        else:
+        elif self.action == Actions.SHORT:
             self.info('Entering a SHORT position')
             result = self.market_sell_order(amount=self.modal_duid)
+        else:
+            raise NotImplementedError('Implemented Actions are LONG and SHORT')
 
         return result
 
