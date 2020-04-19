@@ -38,7 +38,8 @@ from neobabix.indicators.movingaverages import VWMA
 
 
 class VWMAStrategy(Strategy):
-    def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray, logger: Logger):
+    def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, 
+                 volumes: np.ndarray, logger: Logger):
         super().__init__(opens, highs, lows, closes, volumes, logger)
         
         self.vwma21 = VWMA(closes=closes,
@@ -56,24 +57,39 @@ class VWMAStrategy(Strategy):
 
 A more robust strategy can be found [here](neobabix/strategies/wisewilliams.py).
 
+## Trade Lock
+
+Using `asyncio` lock mechanism, an `asyncio.Lock` object is passed every tick. This lock is observed by `neobabix.playbooks.Playbook` objects. Will only trade if the lock is free.
+
 ## Playbooks
 
 Playbooks are how entries and exits are managed. You can do staggered entries, staggered exits or just plain entry with an exit take profit order after entering a trade.
 
-Pivot exits are also supported, ex: when a long entry is stopped by prices going down, a subsequent short entry can be made. These type of entries will call exhange API's quite frequent, rate limit should be observed. 
+Pivot exits are also supported, ex: when a long entry is stopped by prices going down, a subsequent short entry can be made. These type of entries will call exhange API's quite frequent, rate limit should be observed.
 
-## Environment Variables
+`neobabix.playbooks.Playbook` overrides the magic method `__del__` to release the trade lock if and when the object is destructured. If for any reason you want to disable this, override the method on your custom playbook to `pass`.
+
+### Hit And Run Playbook
+
+This playbook receives a `LONG` or `SHORT` action. Immediately enters an open position and create take profit and stop limit orders afterwards.
+
+The flow is as follows:
+
+```
+Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => Notify => Destructured
+```
+
+Trade lock is retained while the poll is running.
+
+### Environment Variables
 
 | Name | Description |
 | :--- | :--- |
-| `CANDLES_EXCHANGE` | Exchange from which we get OHLCV data, defaults to `bitfinex` |
-| `TRADES_EXCHANGE` | Exchange where we trade, defaults to `binance` |
-| `API_KEY` | Traded exchange API key, defaults to `*blank*` |
-| `API_SECRET` | Traded exchange API secret, defaults to `*blank*` |
-| `STRATEGY` | Strategy used to map OHLCV into Actions, defaults to `WiseWilliams` |
-| `SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
-| `TRADE_ON_CLOSE` | Decides whether to trade based on the current candle or the previous candle, defaults to `1` |
-| `DEBUG` | Will show debug messages when enabled, defaults to `1` |
+| `TAKE_PROFIT_IN_PERCENT` | Required float number |
+| `STOP_IN_PERCENT` | Required float number |
+| `MODAL_DUID` | Required float number |
+| `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
+| `STOP_LIMIT_DIFF` | Required float number |
 
 ## Running
 
@@ -95,6 +111,19 @@ $ cp run-local.sh.example run-local.sh
 $ chmod +x run-local.sh
 $ vim run-local.sh # Fill in the values
 ```
+
+## Global Environment Variables
+
+| Name | Description |
+| :--- | :--- |
+| `CANDLES_EXCHANGE` | Exchange from which we get OHLCV data, defaults to `bitfinex` |
+| `TRADES_EXCHANGE` | Exchange where we trade, defaults to `binance` |
+| `API_KEY` | Traded exchange API key, defaults to `*blank*` |
+| `API_SECRET` | Traded exchange API secret, defaults to `*blank*` |
+| `STRATEGY` | Strategy used to map OHLCV into Actions, defaults to `WiseWilliams` |
+| `SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
+| `TRADE_ON_CLOSE` | Decides whether to trade based on the current candle or the previous candle, defaults to `1` |
+| `DEBUG` | Will show debug messages when enabled, defaults to `1` |
 
 ## Contributors
 

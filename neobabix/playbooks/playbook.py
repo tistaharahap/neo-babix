@@ -77,6 +77,10 @@ class Playbook(ABC):
     async def after_exit(self):
         pass
 
+    async def notify(self, message):
+        # TODO: Notification mechanism to notify for significant events
+        pass
+
     async def sleep(self, interval_in_seconds):
         await asyncio.sleep(interval_in_seconds)
 
