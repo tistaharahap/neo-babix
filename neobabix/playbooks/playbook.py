@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 from ccxt.base.exchange import Exchange
 from asyncio import Lock
 from logging import Logger
+from datetime import datetime
 from neobabix.strategies.strategy import Actions
 
 import ccxt
+import asyncio
 
 
 class Playbook(ABC):
@@ -21,7 +23,8 @@ class Playbook(ABC):
             - Bybit
     """
 
-    def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str, timeframe: str, modal_duid: str, recursive: bool = False, leverage: int = None):
+    def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
+                 timeframe: str, recursive: bool = False, leverage: int = None):
         self.action = action
         self.exchange = exchange
         self.trade_lock = trade_lock
@@ -30,14 +33,17 @@ class Playbook(ABC):
         self.symbol = symbol
         self.timeframe = timeframe
         self.leverage = leverage
-        self.modal_duid = modal_duid
 
-        # State vars
-        self.entry_price = None
+        # Orders
+        self.order_entry = {}
+        self.order_exit = {}
+        self.order_stop = {}
 
         # Acquire lock immediately
         if not self.trade_lock.locked():
             self.trade_lock.acquire()
+
+        self.execution_start_time = datetime.utcnow()
 
     def __del__(self):
         if self.trade_lock.locked():
@@ -67,6 +73,9 @@ class Playbook(ABC):
     @abstractmethod
     async def after_exit(self):
         pass
+
+    async def sleep(self, interval_in_seconds):
+        await asyncio.sleep(interval_in_seconds)
 
     def info(self, message):
         self.logger.info(f'{self.__name__}: {message}')
@@ -122,6 +131,28 @@ class Playbook(ABC):
 
         return order
 
+    async def market_stop_sell_order(self, amount):
+        if not self.exchange.has['createMarketOrder']:
+            raise AttributeError('The selected exchange does not support market orders')
+
+        order = self.exchange.create_order(symbol=self.symbol,
+                                           tyoe='market',
+                                           side='sell',
+                                           amount=amount)
+
+        return order
+
+    async def market_stop_buy_order(self, amount):
+        if not self.exchange.has['createMarketOrder']:
+            raise AttributeError('The selected exchange does not support market orders')
+
+        order = self.exchange.create_order(symbol=self.symbol,
+                                           type='market',
+                                           side='buy',
+                                           amount=amount)
+
+        return order
+
     async def limit_buy_order(self, amount, price):
         order = self.exchange.create_limit_buy_order(symbol=self.symbol,
                                                      amount=amount,
@@ -132,5 +163,31 @@ class Playbook(ABC):
         order = self.exchange.create_limit_sell_order(symbol=self.symbol,
                                                       amount=amount,
                                                       price=price)
+        return order
+
+    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
+        params = {
+            'stopPrice': stop_price,
+            'type': 'stopLimit'
+        }
+        order = self.exchange.create_order(symbol=self.symbol,
+                                           type='limit',
+                                           side='sell',
+                                           amount=amount,
+                                           price=sell_price,
+                                           params=params)
+        return order
+
+    async def limit_stop_buy_order(self, amount, stop_price, sell_price):
+        params = {
+            'stopPrice': stop_price,
+            'type': 'stopLimit'
+        }
+        order = self.exchange.create_order(symbol=self.symbol,
+                                           type='limit',
+                                           side='sell',
+                                           amount=amount,
+                                           price=sell_price,
+                                           params=params)
         return order
 

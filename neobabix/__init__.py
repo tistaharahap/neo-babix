@@ -1,4 +1,4 @@
-from os import environ
+from os import environ, getcwd
 from typing import Dict, Type
 from asyncio import Lock
 
@@ -8,6 +8,7 @@ from ccxt.base.exchange import Exchange
 from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
 from neobabix.logger import get_logger
+from neobabix.constants import USER_AGENT
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
 TRADES_EXCHANGE = environ.get('TRADE_EXCHANGE', 'binance')
@@ -27,17 +28,28 @@ def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None) 
     except AttributeError:
         raise AttributeError(f'The exchange {exchange} is not supported')
 
+    current_path = getcwd()
+    with open(f'{current_path}/version.txt', 'r') as f:
+        version = f.readline()
+
+    headers = {
+        'User-Agent': f'{USER_AGENT}/v{version}'
+    }
+
     if api_key and api_secret:
         return exc({
             'apiKey': api_key,
-            'secret': api_secret
+            'secret': api_secret,
+            'headers': headers
         })
 
-    return exc()
+    return exc({
+        'headers': headers
+    })
 
 
-async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h', trade_on_close: bool = True) -> Dict[
-    str, np.ndarray]:
+async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
+                        trade_on_close: bool = True) -> Dict[str, np.ndarray]:
     client = get_ccxt_client(exchange=exchange)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
