@@ -26,6 +26,9 @@ class Playbook(ABC):
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
                  timeframe: str, recursive: bool = False, leverage: int = None):
         self.action = action
+        if self.action != Actions.LONG and self.action != Actions.SHORT:
+            raise NotImplementedError('Supported actions are LONG and SHORT')
+
         self.exchange = exchange
         self.trade_lock = trade_lock
         self.logger = logger

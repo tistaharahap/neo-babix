@@ -68,8 +68,6 @@ class HitAndRun(Playbook):
         elif self.action == Actions.SHORT:
             self.info('Entering a SHORT position')
             self.order_entry = await self.market_sell_order(amount=self.modal_duid)
-        else:
-            raise NotImplementedError('Implemented Actions are LONG and SHORT')
 
     async def after_entry(self):
         self.info(f'Successfully entered a trade')
