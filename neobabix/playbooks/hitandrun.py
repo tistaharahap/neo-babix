@@ -15,7 +15,19 @@ class HitAndRun(Playbook):
     """
 
     async def entry(self):
-        pass
+        self.info('Going to execute entry')
+        if self.leverage is not None:
+            self.info(f'Setting leverage to {self.leverage}x')
+            await self.set_leverage(leverage=self.leverage)
+
+        if self.trade_mode == 'long':
+            self.info('Entering a LONG position')
+            result = self.market_buy_order(amount=self.modal_duid)
+        else:
+            self.info('Entering a SHORT position')
+            result = self.market_sell_order(amount=self.modal_duid)
+
+        return result
 
     async def after_entry(self):
         pass

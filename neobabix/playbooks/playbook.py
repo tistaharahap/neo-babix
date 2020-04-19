@@ -3,6 +3,8 @@ from ccxt.base.exchange import Exchange
 from asyncio import Lock
 from logging import Logger
 
+import ccxt
+
 
 class Playbook(ABC):
     __name__ = 'Neobabix Playbook'
@@ -13,17 +15,32 @@ class Playbook(ABC):
         Instantiated > Acquire Lock > Play > Entry > After Entry > Exit > After Exit > Release Lock > Destructured 
     """
 
-    def __init__(self, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str, timeframe: str, recursive: bool = False):
+    """
+        Supported Exchanges:
+            - Bybit
+    """
+
+    def __init__(self, trade_mode: str, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str, timeframe: str, modal_duid: str, recursive: bool = False, leverage: int = None):
+        self.trade_mode = trade_mode
         self.exchange = exchange
         self.trade_lock = trade_lock
         self.logger = logger
         self.recursive = recursive
         self.symbol = symbol
         self.timeframe = timeframe
+        self.leverage = leverage
+        self.modal_duid = modal_duid
+
+        # State vars
+        self.entry_price = None
 
         # Acquire lock immediately
         if not self.trade_lock.locked():
             self.trade_lock.acquire()
+
+    def __del__(self):
+        if self.trade_lock.locked():
+            self.release_trade_lock()
 
     async def play(self):
         await self.entry()
@@ -69,12 +86,38 @@ class Playbook(ABC):
     async def get_ticker(self):
         return self.exchange.fetch_ticker(symbol=self.symbol)
 
+    async def set_leverage(self, leverage: int):
+        method_name = None
+        if type(self.exchange) == ccxt.bybit:
+            method_name = 'userPostLeverageSave'
+
+        if not method_name:
+            raise NotImplementedError('Unsupported exchange')
+
+        method = getattr(self.exchange, method_name)
+        response = method(symbol=self.symbol,
+                          leverage=leverage)
+
+        if response.get('ret_code') != 0 or response.get('ret_msg') != 'ok':
+            raise AssertionError('Got error message while setting leverage')
+
+        return response
+
     async def market_buy_order(self, amount):
         if not self.exchange.has['createMarketOrder']:
             raise AttributeError('The selected exchange does not support market orders')
 
         order = self.exchange.create_market_buy_order(symbol=self.symbol,
                                                       amount=amount)
+
+        return order
+
+    async def market_sell_order(self, amount):
+        if not self.exchange.has['createMarketOrder']:
+            raise AttributeError('The selected exchange does not support market orders')
+
+        order = self.exchange.create_market_sell_order(symbol=self.symbol,
+                                                       amount=amount)
 
         return order
 
