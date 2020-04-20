@@ -19,6 +19,7 @@ pytz==2019.3
 requests==2.23.0
 six==1.14.0
 TA-Lib==0.4.17
+telepot==12.7
 tzlocal==2.0.0
 urllib3==1.25.8
 uvloop==0.14.0
