@@ -4,6 +4,7 @@ from asyncio import Lock
 from logging import Logger
 from datetime import datetime
 from neobabix.strategies.strategy import Actions
+from neobabix.notifications.notification import Notification
 
 import ccxt
 import asyncio
@@ -24,7 +25,7 @@ class Playbook(ABC):
     """
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
-                 timeframe: str, recursive: bool = False, leverage: int = None):
+                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None):
         self.action = action
         if self.action != Actions.LONG and self.action != Actions.SHORT:
             raise NotImplementedError('Supported actions are LONG and SHORT')
@@ -36,6 +37,7 @@ class Playbook(ABC):
         self.symbol = symbol
         self.timeframe = timeframe
         self.leverage = leverage
+        self.notification = notification
 
         # Orders
         self.order_entry = {}

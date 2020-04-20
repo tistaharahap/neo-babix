@@ -9,6 +9,8 @@ from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
 from neobabix.logger import get_logger
 from neobabix.constants import USER_AGENT
+from neobabix.playbooks.hitandrun import HitAndRun
+from neobabix.notifications.telegram import Telegram
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
 TRADES_EXCHANGE = environ.get('TRADE_EXCHANGE', 'binance')
@@ -18,6 +20,9 @@ STRATEGY = environ.get('STRATEGY', 'WiseWilliams')
 TIMEFRAME = '1h'
 SYMBOL = environ.get('SYMBOL', 'BTC/USD')
 TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
+PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
+NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
+LEVERAGE = environ.get('LEVERAGE', '2')
 
 logger = get_logger()
 
@@ -92,18 +97,42 @@ def get_strategy(strategy: str) -> Type[Strategy]:
 
 
 async def route_actions(action: Actions, trade_lock: Lock):
+    if trade_lock.locked():
+        logger.info('There is an ongoing trade, bailing out')
+        return
+
+    logger.info('There is no ongoing trade, we can instantiate a playbook if applicable')
+
     if action == Actions.SHORT:
         logger.info('Signal suggests short!')
     elif action == Actions.LONG:
         logger.info('Signal suggests long!')
     elif action == Actions.NOTHING:
         logger.info('Signal suggests doing nothing..')
-
-    if trade_lock.locked():
-        logger.info('There is an ongoing trade, bailing out')
         return
 
-    logger.info('There is no ongoing trade, we can instantiate a playbook if applicable')
+    playbooks = {
+        'HitAndRun': HitAndRun
+    }
+    _playbook = playbooks.get(PLAYBOOK)
+    if not _playbook:
+        raise NotImplementedError(f'Playbook {PLAYBOOK} is not yet implemented')
+
+    exchange = get_ccxt_client(exchange=TRADES_EXCHANGE,
+                               api_key=API_KEY,
+                               api_secret=API_SECRET)
+    notification = Telegram()
+
+    playbook = _playbook(action=action,
+                         exchange=exchange,
+                         trade_lock=trade_lock,
+                         logger=logger,
+                         symbol=SYMBOL,
+                         timeframe=TIMEFRAME,
+                         notification=notification,
+                         leverage=int(LEVERAGE))
+
+    await playbook.play()
 
 
 async def tick(trade_lock: Lock):

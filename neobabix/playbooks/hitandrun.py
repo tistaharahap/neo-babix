@@ -7,6 +7,7 @@ from ccxt import Exchange, TRUNCATE
 
 from neobabix.playbooks.playbook import Playbook
 from neobabix.strategies.strategy import Actions
+from neobabix.notifications.notification import Notification
 
 
 class HitAndRun(Playbook):
@@ -30,8 +31,8 @@ class HitAndRun(Playbook):
     """
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
-                 timeframe: str, recursive: bool = False, leverage: int = None):
-        super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, recursive, leverage)
+                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None):
+        super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, notification, recursive, leverage)
 
         self.tp_in_percent = environ.get('TAKE_PROFIT_IN_PERCENT')
         if not self.tp_in_percent:
@@ -73,6 +74,9 @@ class HitAndRun(Playbook):
         self.info(f'Successfully entered a trade')
         self.info(f'Modal Duid: {self.modal_duid}')
         self.info(f'Entry Price: {self.order_entry.get("price")}')
+
+        await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
+                                                        modal_duid=str(self.modal_duid))
 
     async def exit(self):
         self.info('Going to execute exit')
@@ -138,5 +142,11 @@ class HitAndRun(Playbook):
 
     async def after_exit(self):
         self.info('Done creating orders, polling for exits')
+
+        await self.notification.send_exit_notification(entry_price=str(self.order_entry.get('price')),
+                                                       modal_duid=str(self.modal_duid),
+                                                       exit_price=str(self.order_exit.get('price')),
+                                                       stop_limit_price=str(self.order_stop.get('price')),
+                                                       settled=False)
 
         # TODO: Create mechanism to poll exchange for exit orders completion
