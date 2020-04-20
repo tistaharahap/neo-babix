@@ -161,6 +161,9 @@ $ vim run-local.sh # Fill in the values
 | `SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
 | `TRADE_ON_CLOSE` | Decides whether to trade based on the current candle or the previous candle, defaults to `1` |
 | `DEBUG` | Will show debug messages when enabled, defaults to `1` |
+| `PLAYBOOK` | The playbook to be used for the boot, defaults to `HitAndRun` |
+| `NOTIFY_USING` | The notification channel used, defaults to `telegram` |
+| `LEVERAGE` | The leverage used on margin trading exchanges, do not set to trade without leverage |
 
 ## Contributors
 

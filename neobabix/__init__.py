@@ -22,7 +22,7 @@ SYMBOL = environ.get('SYMBOL', 'BTC/USD')
 TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
 PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
 NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
-LEVERAGE = environ.get('LEVERAGE', '2')
+LEVERAGE = environ.get('LEVERAGE')
 
 logger = get_logger()
 
@@ -121,7 +121,15 @@ async def route_actions(action: Actions, trade_lock: Lock):
     exchange = get_ccxt_client(exchange=TRADES_EXCHANGE,
                                api_key=API_KEY,
                                api_secret=API_SECRET)
-    notification = Telegram()
+
+    notification_channels = {
+        'telegram': Telegram
+    }
+    _notification = notification_channels.get(NOTIFY_USING)
+    if not _notification:
+        raise NotImplementedError(f'The notification channel {NOTIFY_USING} is not yet implemented')
+
+    notification = _notification()
 
     playbook = _playbook(action=action,
                          exchange=exchange,

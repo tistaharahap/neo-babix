@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+
+# Global
 export CANDLES_EXCHANGE="bitfinex"
 export TRADES_EXCHANGE="binance"
 export API_KEY=""
@@ -7,6 +9,20 @@ export STRATEGY="WiseWilliams"
 export SYMBOL="BTC/USD"
 export TRADE_ON_CLOSE="1"
 export DEBUG="1"
+export LEVERAGE="2"
+export PLAYBOOK="HitAndRun"
+export NOTIFY_USING="telegram"
+
+# Telegram
+export TELEGRAM_TOKEN=""
+export TELEGRAM_USER_ID=""
+
+# HitAndRun Playbook
+export TAKE_PROFIT_IN_PERCENT="0.5"
+export STOP_IN_PERCENT="0.2"
+export MODAL_DUID="1000"
+export PRICE_DECIMAL_PLACES="0"
+export STOP_LIMIT_DIFF="10"
 
 . env/bin/activate
 python app.py
