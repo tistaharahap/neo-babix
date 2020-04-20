@@ -61,6 +61,42 @@ A more robust strategy can be found [here](neobabix/strategies/wisewilliams.py).
 
 Using `asyncio` lock mechanism, an `asyncio.Lock` object is passed every tick. This lock is observed by `neobabix.playbooks.Playbook` objects. Will only trade if the lock is free.
 
+## Notifications
+
+As of this writing notifications are only sent to a single destination. `Telegram` is the choice for now. Creating new notification channel is a matter of extending the `neobabix.notifications.notification.Notification` class. The Telegram notification channel serves as an example.
+
+### Telegram
+
+All notification messages are sent as `MarkdownV2` message format. 
+
+#### Environment Variables
+
+These env vars are required to send Telgram notifications.
+
+| Name | Description |
+| :--- | :--- |
+| `TELEGRAM_TOKEN` | Required string |
+| `TELEGRAM_USER_ID` | Required string |
+
+#### Getting Your Own Telegram Bot
+
+```python
+"""
+    How to create your own Telegram bot and get its token:
+        1. Start a chat with @BotFather
+        2. Follow the instructions
+        3. Copy paste the token generated as an env var
+    
+    How to activate your bot:
+        1. Start a chat with your bot
+    
+    How to get your own Telegram User ID:
+        1. Start a chat with @userinfobot
+        2. Immediately you'll receive the ID in the chat
+        3. Copy paste the ID as an env var
+"""
+```
+
 ## Playbooks
 
 Playbooks are how entries and exits are managed. You can do staggered entries, staggered exits or just plain entry with an exit take profit order after entering a trade.
