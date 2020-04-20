@@ -1,6 +1,7 @@
 import telepot
 
 from os import environ
+from string import Template
 from neobabix.notifications.notification import Notification
 
 TELEGRAM_TOKEN = environ.get('TELEGRAM_TOKEN')
@@ -23,10 +24,7 @@ TELEGRAM_USER_ID = environ.get('TELEGRAM_USER_ID')
 
 
 class Telegram(Notification):
-    def __init__(self, as_markdown = False):
-        self.as_markdown = as_markdown
-
-    async def send_message(self, message):
+    async def send_message(self, message: str):
         global TELEGRAM_TOKEN, TELEGRAM_USER_ID
         if not TELEGRAM_TOKEN:
             raise NotImplementedError('Required env var TELEGRAM_TOKEN must be set')
@@ -35,10 +33,38 @@ class Telegram(Notification):
 
         bot = telepot.Bot(token=TELEGRAM_TOKEN)
 
-        if self.as_markdown:
-            await bot.sendMessage(chat_id=TELEGRAM_USER_ID,
-                                  text=message,
-                                  parse_mode='Markdown')
-        else:
-            await bot.sendMessage(chat_id=TELEGRAM_USER_ID,
-                                  text=message)
+        await bot.sendMessage(chat_id=TELEGRAM_USER_ID,
+                              text=message,
+                              parse_mode='MarkdownV2')
+
+    async def send_entry_notification(self, entry_price: str, modal_duid: str):
+        with open('neobabix/notifications/templates/telegram-entry-notification.txt', 'r') as f:
+            src = Template(f.read())
+            values = {
+                'appname': self.app_name,
+                'entryprice': entry_price,
+                'modalduid': modal_duid,
+                'chucknorris': self.chucknorris()
+            }
+
+            message = src.substitute(values)
+
+            await self.send_message(message=message)
+
+    async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
+                                     settled: bool):
+        with open('neobabix/notifications/templates/telegram-exit-notification.txt', 'r') as f:
+            src = Template(f.read())
+            values = {
+                'appname': self.app_name,
+                'entryprice': entry_price,
+                'modalduid': modal_duid,
+                'stopprice': stop_limit_price,
+                'exitprice': exit_price,
+                'settled': 'Yes' if settled else 'No',
+                'chucknorris': self.chucknorris()
+            }
+
+            message = src.substitute(values)
+
+            await self.send_message(message=message)

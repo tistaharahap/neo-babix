@@ -1,0 +1,11 @@
+*$appname*\n
+\n
+Succesful entry!\n
+\n
+Entry Price: *$entryprice*\n
+Modal Duid: *$modalduid*\n
+\n
+Written with 💚 by contributors\n
+https://github.com/tistaharahap/neo-babix\n
+\n
+_$chucknorris_
