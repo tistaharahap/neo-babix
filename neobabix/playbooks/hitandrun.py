@@ -158,16 +158,38 @@ class HitAndRun(Playbook):
         self.order_stop = poll_result.get('stop_order')
         self.info(f'Stop order status: {self.order_stop.get("status")}')
 
+        entry_price = Decimal(self.order_entry.get('price'))
+        exit_price = None
+        won = None
+
         # Cancel the other order
         if self.order_exit.get('status') == 'closed':
             self.info('Cancelling stop order')
             await self.cancel_order(order_id=self.order_stop.get('id'))
+            exit_price = Decimal(self.order_exit.get('price'))
+            won = True
         elif self.order_stop.get('status') == 'closed':
             self.info('Cancelling exit order')
+            exit_price = Decimal(self.order_stop.get('price'))
             await self.cancel_order(order_id=self.order_exit.get('id'))
+            won = False
+
+        pnl = None
+
+        if self.action == Actions.LONG and won:
+            pnl = exit_price / entry_price * Decimal(100) - Decimal(100)
+        elif self.action == Actions.LONG and not won:
+            pnl = (entry_price / exit_price * Decimal(100) - Decimal(100)) * Decimal(-1)
+        elif self.action == Actions.SHORT and won:
+            pnl = entry_price / exit_price * Decimal(100) - Decimal(100)
+        elif self.action == Actions.SHORT and not won:
+            pnl = (exit_price / entry_price * Decimal(100) - Decimal(100)) * Decimal(-1)
+
+        pnl = int(pnl)
 
         self.info('Sending exit notification')
         await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
                                                        exit_price=self.order_exit.get('price'),
                                                        stop_limit_price=self.order_stop.get('price'),
-                                                       settled=True)
+                                                       settled=True,
+                                                       pnl_in_percent=pnl)

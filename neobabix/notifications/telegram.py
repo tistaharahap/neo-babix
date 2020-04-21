@@ -52,19 +52,37 @@ class Telegram(Notification):
             await self.send_message(message=message)
 
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool):
-        with open('neobabix/notifications/templates/telegram-exit-notification.txt', 'r') as f:
-            src = Template(f.read())
-            values = {
-                'appname': self.app_name,
-                'entryprice': entry_price,
-                'modalduid': modal_duid,
-                'stopprice': stop_limit_price,
-                'exitprice': exit_price,
-                'settled': 'Yes' if settled else 'No',
-                'chucknorris': self.chucknorris()
-            }
+                                     settled: bool, pnl_in_percent: int):
+        if not settled:
+            with open('neobabix/notifications/templates/telegram-exit-notification.txt', 'r') as f:
+                src = Template(f.read())
+                values = {
+                    'appname': self.app_name,
+                    'entryprice': entry_price,
+                    'modalduid': modal_duid,
+                    'stopprice': stop_limit_price,
+                    'exitprice': exit_price,
+                    'settled': 'Yes' if settled else 'No',
+                    'chucknorris': self.chucknorris()
+                }
 
-            message = src.substitute(values)
+                message = src.substitute(values)
 
-            await self.send_message(message=message)
+                await self.send_message(message=message)
+        else:
+            with open('neobabix/notifications/templates/telegram-exit-notification-settled.txt', 'r') as f:
+                src = Template(f.read())
+                values = {
+                    'appname': self.app_name,
+                    'entryprice': entry_price,
+                    'modalduid': modal_duid,
+                    'stopprice': stop_limit_price,
+                    'exitprice': exit_price,
+                    'settled': 'Yes' if settled else 'No',
+                    'pnl': pnl_in_percent,
+                    'chucknorris': self.chucknorris()
+                }
+
+                message = src.substitute(values)
+
+                await self.send_message(message=message)

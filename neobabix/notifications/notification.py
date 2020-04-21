@@ -23,7 +23,7 @@ class Notification(ABC):
 
     @abstractmethod
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool):
+                                     settled: bool, pnl_in_percent: int):
         pass
 
     def chucknorris(self):
