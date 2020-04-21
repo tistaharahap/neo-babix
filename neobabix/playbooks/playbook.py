@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Union
 from ccxt.base.exchange import Exchange
+from ccxt import TRUNCATE
 from asyncio import Lock
 from logging import Logger
 from datetime import datetime
+from decimal import Decimal
 from neobabix.strategies.strategy import Actions
 from neobabix.notifications.notification import Notification
 
@@ -46,6 +49,7 @@ class Playbook(ABC):
 
         # Acquire lock immediately
         if not self.trade_lock.locked():
+            self.info('Acquiring trade lock')
             self.trade_lock.acquire()
 
         self.execution_start_time = datetime.utcnow()
@@ -93,6 +97,7 @@ class Playbook(ABC):
         self.logger.debug(f'{self.__name__}: {message}')
 
     def release_trade_lock(self):
+        self.info('Releasing trade lock')
         self.trade_lock.release()
 
     async def get_latest_candle(self):
@@ -121,6 +126,47 @@ class Playbook(ABC):
             raise AssertionError('Got error message while setting leverage')
 
         return response
+
+    async def poll_results(self):
+        self.info(f'Starting to poll for order IDs f{self.order_exit.get("id")} and f{self.order_stop.get("id")}')
+
+        def _poll_orders(exit_order_id, stop_order_id, symbol) -> Union[dict, bool]:
+            exit_order = self.exchange.fetch_order(id=exit_order_id,
+                                                   symbol=symbol)
+            stop_order = self.exchange.fetch_order(id=stop_order_id,
+                                                   symbol=symbol)
+
+            exit_order_status = exit_order.get('status')
+            stop_order_status = stop_order.get('status')
+
+            ended_statuses = ['closed', 'canceled']
+
+            if exit_order_status in ended_statuses or stop_order_status in ended_statuses:
+                return {
+                    'stop_order': stop_order,
+                    'exit_order': exit_order
+                }
+
+            return False
+
+        while True:
+            result = _poll_orders(exit_order_id=self.order_exit.get('id'),
+                                  stop_order_id=self.order_stop.get('id'),
+                                  symbol=self.symbol)
+            if result is False:
+                self.info('Exit and Stop orders are still open, sleeping..')
+                await asyncio.sleep(600)
+                continue
+            else:
+                self.info(f'Got either closed or canceled on one of the order, breaking out..')
+                break
+
+        return result
+
+    async def cancel_order(self, order_id):
+        result = self.exchange.cancel_order(id=order_id,
+                                            symbol=self.symbol)
+        return result
 
     async def market_buy_order(self, amount):
         if not self.exchange.has['createMarketOrder']:
@@ -199,4 +245,3 @@ class Playbook(ABC):
                                            price=sell_price,
                                            params=params)
         return order
-

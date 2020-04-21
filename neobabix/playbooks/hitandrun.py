@@ -150,3 +150,24 @@ class HitAndRun(Playbook):
                                                        settled=False)
 
         # TODO: Create mechanism to poll exchange for exit orders completion
+        poll_result = await self.poll_results()
+
+        self.order_exit = poll_result.get('exit_order')
+        self.info(f'Exit order status: {self.order_exit.get("status")}')
+
+        self.order_stop = poll_result.get('stop_order')
+        self.info(f'Stop order status: {self.order_stop.get("status")}')
+
+        # Cancel the other order
+        if self.order_exit.get('status') == 'closed':
+            self.info('Cancelling stop order')
+            await self.cancel_order(order_id=self.order_stop.get('id'))
+        elif self.order_stop.get('status') == 'closed':
+            self.info('Cancelling exit order')
+            await self.cancel_order(order_id=self.order_exit.get('id'))
+
+        self.info('Sending exit notification')
+        await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
+                                                       exit_price=self.order_exit.get('price'),
+                                                       stop_limit_price=self.order_stop.get('price'),
+                                                       settled=True)
