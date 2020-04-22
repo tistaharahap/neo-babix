@@ -23,11 +23,12 @@ TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
 PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
 NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
 LEVERAGE = environ.get('LEVERAGE')
+TESTNET = environ.get('TESTNET', '0')
 
 logger = get_logger()
 
 
-def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None) -> Exchange:
+def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None, testnet: bool = True) -> Exchange:
     try:
         exc = getattr(ccxt, exchange)
     except AttributeError:
@@ -42,20 +43,27 @@ def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None) 
     }
 
     if api_key and api_secret:
-        return exc({
+        exchange = exc({
             'apiKey': api_key,
             'secret': api_secret,
             'headers': headers
         })
+    else:
+        exchange = exc({
+            'headers': headers
+        })
 
-    return exc({
-        'headers': headers
-    })
+    if testnet:
+        if 'test' in exchange.urls:
+            exchange.urls['api'] = exchange.urls['test']
+        else:
+            raise NotImplementedError('Testnet is wanted but the exchange does not support testnet')
 
 
 async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
                         trade_on_close: bool = True) -> Dict[str, np.ndarray]:
-    client = get_ccxt_client(exchange=exchange)
+    client = get_ccxt_client(exchange=exchange,
+                             testnet=False)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
 
@@ -96,7 +104,7 @@ def get_strategy(strategy: str) -> Type[Strategy]:
     return strategies.get(strategy)
 
 
-async def route_actions(action: Actions, trade_lock: Lock):
+async def route_actions(action: Actions, trade_lock: Lock, testnet: bool):
     if trade_lock.locked():
         logger.info('There is an ongoing trade, bailing out')
         return
@@ -120,7 +128,8 @@ async def route_actions(action: Actions, trade_lock: Lock):
 
     exchange = get_ccxt_client(exchange=TRADES_EXCHANGE,
                                api_key=API_KEY,
-                               api_secret=API_SECRET)
+                               api_secret=API_SECRET,
+                               testnet=testnet)
 
     notification_channels = {
         'telegram': Telegram
@@ -169,7 +178,9 @@ async def tick(trade_lock: Lock):
     action = strategy.filter()
 
     logger.info('Routing actions')
+    use_testnet = True if TESTNET == '1' else False
     await route_actions(action=action,
-                        trade_lock=trade_lock)
+                        trade_lock=trade_lock,
+                        testnet=use_testnet)
 
     logger.info('<< Tick has ended >>')

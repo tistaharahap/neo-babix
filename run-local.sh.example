@@ -12,6 +12,7 @@ export DEBUG="1"
 export LEVERAGE="2"
 export PLAYBOOK="HitAndRun"
 export NOTIFY_USING="telegram"
+export TESTNET="1"
 
 # Telegram
 export TELEGRAM_TOKEN=""
