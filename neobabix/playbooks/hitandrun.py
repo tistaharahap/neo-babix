@@ -108,7 +108,8 @@ class HitAndRun(Playbook):
             # Stop
             self.order_stop = await self.limit_stop_sell_order(amount=self.modal_duid,
                                                                stop_price=stop_price,
-                                                               sell_price=stop_sell_price)
+                                                               sell_price=stop_sell_price,
+                                                               base_price=self.order_entry.get('price'))
         elif self.action == Actions.SHORT:
             exit_price = Decimal(self.order_entry.get('price')) * Decimal(100.0 - self.tp_in_percent) / Decimal(100)
             exit_price = float(exit_price)
@@ -136,7 +137,8 @@ class HitAndRun(Playbook):
             # Stop
             self.order_stop = await self.limit_stop_buy_order(amount=self.modal_duid,
                                                               stop_price=stop_price,
-                                                              buy_price=stop_buy_price)
+                                                              buy_price=stop_buy_price,
+                                                              base_price=self.order_entry.get('price'))
 
             self.info('TP and SL orders are created')
 
@@ -179,6 +181,7 @@ class HitAndRun(Playbook):
             await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
                                                            exit_price=self.order_exit.get('price'),
                                                            stop_limit_price=self.order_stop.get('price'),
+                                                           modal_duid=self.modal_duid,
                                                            settled=True,
                                                            pnl_in_percent='n/a')
             return
@@ -200,5 +203,6 @@ class HitAndRun(Playbook):
         await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
                                                        exit_price=self.order_exit.get('price'),
                                                        stop_limit_price=self.order_stop.get('price'),
+                                                       modal_duid=self.modal_duid,
                                                        settled=True,
                                                        pnl_in_percent=pnl)

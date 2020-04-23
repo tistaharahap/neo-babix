@@ -8,6 +8,7 @@ from ccxt.base.exchange import Exchange
 from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
 from neobabix.strategies.dummylong import DummyLong
+from neobabix.strategies.dummyshort import DummyShort
 from neobabix.logger import get_logger
 from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
@@ -100,7 +101,8 @@ async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
 def get_strategy(strategy: str) -> Type[Strategy]:
     strategies: Dict[str, Type[Strategy]] = {
         'WiseWilliams': WiseWilliams,
-        'DummyLong': DummyLong
+        'DummyLong': DummyLong,
+        'DummyShort': DummyShort
     }
 
     if strategy not in strategies.keys():

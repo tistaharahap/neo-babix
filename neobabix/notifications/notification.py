@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from os import getcwd
+from typing import Union
 from neobabix.notifications.jokes import jokes
 import random
 import requests
@@ -23,7 +24,7 @@ class Notification(ABC):
 
     @abstractmethod
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool, pnl_in_percent: int = None):
+                                     settled: bool, pnl_in_percent: Union[int, str] = None):
         pass
 
     def chucknorris(self):

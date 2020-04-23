@@ -4,6 +4,7 @@ from asyncio import Lock
 from datetime import datetime
 from logging import Logger
 from typing import Union
+from decimal import Decimal
 
 import ccxt
 from ccxt.base.exchange import Exchange
@@ -93,7 +94,7 @@ class Playbook(ABC):
 
     async def release_trade_lock(self):
         self.info('Releasing trade lock')
-        await self.trade_lock.release()
+        self.trade_lock.release()
 
     async def get_latest_candle(self):
         ohlcv = self.exchange.fetch_ohlcv(symbol=self.symbol,
@@ -232,7 +233,7 @@ class Playbook(ABC):
                                            price=price)
         return order
 
-    async def limit_stop_order(self, side, amount, stop_price, price):
+    async def limit_stop_order(self, side, amount, stop_price, price, base_price):
         if type(self.exchange) != ccxt.bybit:
             raise NotImplementedError('Unsupported exchange')
 
@@ -256,7 +257,7 @@ class Playbook(ABC):
             'qty': amount,
             'price': price,
             'stop_px': stop_price,
-            'base_price': stop_price,
+            'base_price': base_price,
             'close_on_trigger': True,
             'time_in_force': 'GoodTillCancel'
         })
@@ -267,14 +268,16 @@ class Playbook(ABC):
 
         return order
 
-    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
-        return self.limit_stop_order(side='Sell',
-                                     amount=amount,
-                                     stop_price=stop_price,
-                                     price=sell_price)
+    async def limit_stop_sell_order(self, amount, stop_price, sell_price, base_price):
+        return await self.limit_stop_order(side='Sell',
+                                           amount=amount,
+                                           stop_price=stop_price,
+                                           price=sell_price,
+                                           base_price=base_price)
 
-    async def limit_stop_buy_order(self, amount, stop_price, buy_price):
-        return self.limit_stop_order(side='Buy',
-                                     amount=amount,
-                                     stop_price=stop_price,
-                                     price=buy_price)
+    async def limit_stop_buy_order(self, amount, stop_price, buy_price, base_price):
+        return await self.limit_stop_order(side='Buy',
+                                           amount=amount,
+                                           stop_price=stop_price,
+                                           price=buy_price,
+                                           base_price=base_price)
