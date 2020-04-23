@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 case $1 in
   "run")

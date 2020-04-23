@@ -30,6 +30,7 @@ RUN set -ex \
     && cd .. \
     && rm -rf ta-lib \
     && rm ta-lib-0.4.0-src.tar.gz \
+    && pip install --upgrade pip \
     && pip install cython \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
     && pip install numpy \
