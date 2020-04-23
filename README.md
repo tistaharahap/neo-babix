@@ -158,7 +158,8 @@ $ vim run-local.sh # Fill in the values
 | `API_KEY` | Traded exchange API key, defaults to `*blank*` |
 | `API_SECRET` | Traded exchange API secret, defaults to `*blank*` |
 | `STRATEGY` | Strategy used to map OHLCV into Actions, defaults to `WiseWilliams` |
-| `SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
+| `CANDLE_SYMBOL` | Cryptocurrency pair to to get candles from, defaults to `BTC/USD` |
+| `TRADE_SYMBOL` | Cryptocurrency pair to trade on, defaults to `BTC/USD` |
 | `TRADE_ON_CLOSE` | Decides whether to trade based on the current candle or the previous candle, defaults to `1` |
 | `DEBUG` | Will show debug messages when enabled, defaults to `1` |
 | `PLAYBOOK` | The playbook to be used for the boot, defaults to `HitAndRun` |
