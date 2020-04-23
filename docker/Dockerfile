@@ -5,7 +5,6 @@ WORKDIR /app
 
 # copy app dependencies
 COPY requirements.txt docker/*.sh ./
-COPY docker/newrelic.ini /newrelic.ini
 
 # install dependecies
 RUN set -ex \
@@ -18,18 +17,19 @@ RUN set -ex \
 	    make \
 	    build-base \
 	    wget \
+	    openssl-dev \
 	\
     # install app dependencies
     && rm -rf /var/lib/apt/lists/* \
-    && wget https://github.com/mrjbq7/ta-lib/archive/TA_Lib-0.4.17.tar.gz \
+    && wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     && tar -xvzf ta-lib-0.4.0-src.tar.gz \
     && cd ta-lib \
     && ./configure --prefix=/usr \
-    && make -j4 \
+    && make \
     && make install \
     && cd .. \
     && rm -rf ta-lib \
-    && rm TA_Lib-0.4.17.tar.gz \
+    && rm ta-lib-0.4.0-src.tar.gz \
     && pip install cython \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
     && pip install numpy \
