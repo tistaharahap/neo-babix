@@ -1,16 +1,16 @@
-*$appname*\n
-\n
-Exit is in progress!\n
-\n
-Entry Price: *$entryprice*\n
-Modal Duid: *$modalduid*\n
-Exit Price: *$exitprice*\n
-Stop Price: *$stopprice*\n
-Settled: *$settled*\n
-\n
-P&L: *$pnl*%\n
-\n
-Written with 💚 by the contributors at\n
-https://github.com/tistaharahap/neo-babix\n
-\n
-_$chucknorris_
+<b>$appname</b>
+
+Neobabix has exited a trade!
+
+Entry Price: <b>$entryprice</b>
+Modal Duid: <b>$modalduid</b>
+Exit Price: <b>$exitprice</b>
+Stop Price: <b>$stopprice</b>
+Settled: <b>$settled</b>
+
+P&L: <b>$pnl</b>%
+
+Written with 💚 by the contributors at
+<a href="https://github.com/tistaharahap/neo-babix">NeoBabix</a>
+
+<i>$chucknorris</i>

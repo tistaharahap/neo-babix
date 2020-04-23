@@ -48,8 +48,8 @@ class HitAndRun(Playbook):
         if not self.modal_duid:
             raise NotImplementedError('Required env var MODAL_DUID must be set')
 
-        self.price_decimal_places = environ.get('PRICE_DECIMAL_PLACES')
-        if not self.price_decimal_places:
+        self.price_decimal_places = int(environ.get('PRICE_DECIMAL_PLACES'))
+        if not self.price_decimal_places and not self.price_decimal_places == 0:
             raise NotImplementedError('Required env var PRICE_DECIMAL_PLACES must be set')
 
         self.stop_limit_diff = environ.get('STOP_LIMIT_DIFF')
@@ -102,11 +102,11 @@ class HitAndRun(Playbook):
             self.info(f'Stop Sell Price: {stop_sell_price}')
 
             # TP
-            self.order_exit = await self.limit_sell_order(amount=self.order_entry.get('filled'),
+            self.order_exit = await self.limit_sell_order(amount=self.modal_duid,
                                                           price=exit_price)
 
             # Stop
-            self.order_stop = await self.limit_stop_sell_order(amount=self.order_entry.get('filled'),
+            self.order_stop = await self.limit_stop_sell_order(amount=self.modal_duid,
                                                                stop_price=stop_price,
                                                                sell_price=stop_sell_price)
         elif self.action == Actions.SHORT:
@@ -130,11 +130,11 @@ class HitAndRun(Playbook):
             self.info(f'Stop Buy Price: {stop_buy_price}')
 
             # TP
-            self.order_exit = await self.limit_buy_order(amount=self.order_entry.get('filled'),
+            self.order_exit = await self.limit_buy_order(amount=self.modal_duid,
                                                          price=exit_price)
 
             # Stop
-            self.order_stop = await self.limit_stop_buy_order(amount=self.order_entry.get('filled'),
+            self.order_stop = await self.limit_stop_buy_order(amount=self.modal_duid,
                                                               stop_price=stop_price,
                                                               sell_price=stop_buy_price)
 
@@ -149,7 +149,6 @@ class HitAndRun(Playbook):
                                                        stop_limit_price=str(self.order_stop.get('price')),
                                                        settled=False)
 
-        # TODO: Create mechanism to poll exchange for exit orders completion
         poll_result = await self.poll_results()
 
         self.order_exit = poll_result.get('exit_order')
@@ -173,6 +172,16 @@ class HitAndRun(Playbook):
             exit_price = Decimal(self.order_stop.get('price'))
             await self.cancel_order(order_id=self.order_exit.get('id'))
             won = False
+
+        if won is None:
+            self.info('User canceled the orders, breaking..')
+            self.info('Sending exit notification')
+            await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
+                                                           exit_price=self.order_exit.get('price'),
+                                                           stop_limit_price=self.order_stop.get('price'),
+                                                           settled=True,
+                                                           pnl_in_percent='n/a')
+            return
 
         pnl = None
 

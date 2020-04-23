@@ -1,11 +1,11 @@
-*$appname*\n
-\n
-Succesful entry!\n
-\n
-Entry Price: *$entryprice*\n
-Modal Duid: *$modalduid*\n
-\n
-Written with 💚 by contributors\n
-https://github.com/tistaharahap/neo-babix\n
-\n
-_$chucknorris_
+<b>$appname</b>
+
+Succesful entry!
+
+Entry Price: <b>$entryprice</b>
+Modal Duid: <b>$modalduid</b>
+
+Written with 💚 by contributors
+<a href="https://github.com/tistaharahap/neo-babix">NeoBabix</a>
+
+<i>$chucknorris</i>

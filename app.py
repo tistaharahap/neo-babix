@@ -14,7 +14,8 @@ async def job():
     await tick(trade_lock=trade_lock)
 
 scheduler = AsyncIOScheduler()
-scheduler.add_job(job, 'cron', minute='*')
+scheduler.add_job(job, 'cron',
+                  second='*/5')
 scheduler.start()
 print(f'Neobabix is running, press Ctrl+C to exit')
 

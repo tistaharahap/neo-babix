@@ -1,16 +1,15 @@
+import asyncio
 from abc import ABC, abstractmethod
-from typing import Union
-from ccxt.base.exchange import Exchange
-from ccxt import TRUNCATE
 from asyncio import Lock
-from logging import Logger
 from datetime import datetime
-from decimal import Decimal
-from neobabix.strategies.strategy import Actions
-from neobabix.notifications.notification import Notification
+from logging import Logger
+from typing import Union
 
 import ccxt
-import asyncio
+from ccxt.base.exchange import Exchange
+
+from neobabix.notifications.notification import Notification
+from neobabix.strategies.strategy import Actions
 
 
 class Playbook(ABC):
@@ -47,25 +46,21 @@ class Playbook(ABC):
         self.order_exit = {}
         self.order_stop = {}
 
+        self.execution_start_time = datetime.utcnow()
+
+    async def play(self):
         # Acquire lock immediately
         if not self.trade_lock.locked():
             self.info('Acquiring trade lock')
-            self.trade_lock.acquire()
+            await self.trade_lock.acquire()
 
-        self.execution_start_time = datetime.utcnow()
-
-    def __del__(self):
-        if self.trade_lock.locked():
-            self.release_trade_lock()
-
-    async def play(self):
         await self.entry()
         await self.after_entry()
         await self.exit()
         await self.after_exit()
 
         if not self.recursive:
-            self.release_trade_lock()
+            await self.release_trade_lock()
 
     @abstractmethod
     async def entry(self):
@@ -96,9 +91,9 @@ class Playbook(ABC):
     def debug(self, message):
         self.logger.debug(f'{self.__name__}: {message}')
 
-    def release_trade_lock(self):
+    async def release_trade_lock(self):
         self.info('Releasing trade lock')
-        self.trade_lock.release()
+        await self.trade_lock.release()
 
     async def get_latest_candle(self):
         ohlcv = self.exchange.fetch_ohlcv(symbol=self.symbol,
@@ -111,16 +106,28 @@ class Playbook(ABC):
         return self.exchange.fetch_ticker(symbol=self.symbol)
 
     async def set_leverage(self, leverage: int):
-        method_name = None
-        if type(self.exchange) == ccxt.bybit:
-            method_name = 'userPostLeverageSave'
+        normalized_symbol = None
+        post_name = get_name = None
 
-        if not method_name:
+        if type(self.exchange) == ccxt.bybit:
+            post_name = 'userPostLeverageSave'
+            get_name = 'userGetLeverage'
+            normalized_symbol = self.symbol.replace('/', '')
+        if not post_name or not get_name or not normalized_symbol:
             raise NotImplementedError('Unsupported exchange')
 
-        method = getattr(self.exchange, method_name)
-        response = method(symbol=self.symbol,
-                          leverage=leverage)
+        # Get leverage
+        method = getattr(self.exchange, get_name)
+        response = method()
+        if response.get('result').get(normalized_symbol).get('leverage') == leverage:
+            return response
+
+        # Post leverage
+        method = getattr(self.exchange, post_name)
+        response = method(params={
+            'symbol': normalized_symbol,
+            'leverage': leverage
+        })
 
         if response.get('ret_code') != 0 or response.get('ret_msg') != 'ok':
             raise AssertionError('Got error message while setting leverage')
@@ -150,12 +157,13 @@ class Playbook(ABC):
             return False
 
         while True:
+            self.info(f'Going to poll for order ids: {self.order_exit.get("id")} {self.order_stop.get("id")}')
             result = _poll_orders(exit_order_id=self.order_exit.get('id'),
                                   stop_order_id=self.order_stop.get('id'),
                                   symbol=self.symbol)
             if result is False:
                 self.info('Exit and Stop orders are still open, sleeping..')
-                await asyncio.sleep(600)
+                await asyncio.sleep(60)
                 continue
             else:
                 self.info(f'Got either closed or canceled on one of the order, breaking out..')
@@ -209,28 +217,54 @@ class Playbook(ABC):
         return order
 
     async def limit_buy_order(self, amount, price):
-        order = self.exchange.create_limit_buy_order(symbol=self.symbol,
-                                                     amount=amount,
-                                                     price=price)
+        order = self.exchange.create_order(symbol=self.symbol,
+                                           type='limit',
+                                           side='buy',
+                                           amount=amount,
+                                           price=price)
         return order
 
     async def limit_sell_order(self, amount, price):
-        order = self.exchange.create_limit_sell_order(symbol=self.symbol,
-                                                      amount=amount,
-                                                      price=price)
-        return order
-
-    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
-        params = {
-            'stopPrice': stop_price,
-            'type': 'stopLimit'
-        }
         order = self.exchange.create_order(symbol=self.symbol,
                                            type='limit',
                                            side='sell',
                                            amount=amount,
-                                           price=sell_price,
-                                           params=params)
+                                           price=price)
+        return order
+
+    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
+        if type(self.exchange) != ccxt.bybit:
+            raise NotImplementedError('Unsupported exchange')
+
+        method_name = None
+        if type(self.exchange) == ccxt.bybit:
+            method_name = 'openapiPostStopOrderCreate'
+        if not method_name:
+            raise NotImplementedError('The exchange does not support stop orders')
+
+        normalized_symbol = None
+        if type(self.exchange) == ccxt.bybit:
+            normalized_symbol = self.symbol.replace('/', '')
+        if not normalized_symbol:
+            raise NotImplementedError('Unsupported exchange')
+
+        method = getattr(self.exchange, method_name)
+        order = method(params={
+            'side': 'Sell',
+            'symbol': normalized_symbol,
+            'order_type': 'Limit',
+            'qty': amount,
+            'price': sell_price,
+            'stop_px': stop_price,
+            'base_price': stop_price,
+            'close_on_trigger': True,
+            'time_in_force': 'GoodTillCancel'
+        })
+        order.update({
+            'id': order.get('result').get('stop_order_id'),
+            'price': order.get('result').get('price')
+        })
+
         return order
 
     async def limit_stop_buy_order(self, amount, stop_price, sell_price):

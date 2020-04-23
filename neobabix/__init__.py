@@ -7,18 +7,20 @@ import numpy as np
 from ccxt.base.exchange import Exchange
 from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
+from neobabix.strategies.dummylong import DummyLong
 from neobabix.logger import get_logger
 from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
 from neobabix.notifications.telegram import Telegram
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
-TRADES_EXCHANGE = environ.get('TRADE_EXCHANGE', 'binance')
+TRADES_EXCHANGE = environ.get('TRADES_EXCHANGE', 'binance')
 API_KEY = environ.get('API_KEY', '')
 API_SECRET = environ.get('API_SECRET', '')
 STRATEGY = environ.get('STRATEGY', 'WiseWilliams')
 TIMEFRAME = '1h'
-SYMBOL = environ.get('SYMBOL', 'BTC/USD')
+CANDLE_SYMBOL = environ.get('CANDLE_SYMBOL', 'BTC/USDT')
+TRADE_SYMBOL = environ.get('TRADE_SYMBOL', 'BTC/USD')
 TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
 PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
 NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
@@ -66,7 +68,6 @@ async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
                         trade_on_close: bool = True) -> Dict[str, np.ndarray]:
     client = get_ccxt_client(exchange=exchange,
                              testnet=False)
-    print(client)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
 
@@ -98,7 +99,8 @@ async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
 
 def get_strategy(strategy: str) -> Type[Strategy]:
     strategies: Dict[str, Type[Strategy]] = {
-        'WiseWilliams': WiseWilliams
+        'WiseWilliams': WiseWilliams,
+        'DummyLong': DummyLong
     }
 
     if strategy not in strategies.keys():
@@ -147,7 +149,7 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool):
                          exchange=exchange,
                          trade_lock=trade_lock,
                          logger=logger,
-                         symbol=SYMBOL,
+                         symbol=TRADE_SYMBOL,
                          timeframe=TIMEFRAME,
                          notification=notification,
                          leverage=int(LEVERAGE))
@@ -162,7 +164,7 @@ async def tick(trade_lock: Lock):
     logger.info(f'Trade on Close: {trade_on_close}')
 
     logger.info(f'Fetching candles from {CANDLES_EXCHANGE.title()}')
-    candles = await fetch_candles(symbol=SYMBOL,
+    candles = await fetch_candles(symbol=CANDLE_SYMBOL,
                                   exchange=CANDLES_EXCHANGE,
                                   timeframe=TIMEFRAME,
                                   trade_on_close=trade_on_close)
