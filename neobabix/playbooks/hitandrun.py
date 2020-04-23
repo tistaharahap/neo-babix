@@ -136,7 +136,7 @@ class HitAndRun(Playbook):
             # Stop
             self.order_stop = await self.limit_stop_buy_order(amount=self.modal_duid,
                                                               stop_price=stop_price,
-                                                              sell_price=stop_buy_price)
+                                                              buy_price=stop_buy_price)
 
             self.info('TP and SL orders are created')
 

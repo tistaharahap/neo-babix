@@ -232,7 +232,7 @@ class Playbook(ABC):
                                            price=price)
         return order
 
-    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
+    async def limit_stop_order(self, side, amount, stop_price, price):
         if type(self.exchange) != ccxt.bybit:
             raise NotImplementedError('Unsupported exchange')
 
@@ -250,11 +250,11 @@ class Playbook(ABC):
 
         method = getattr(self.exchange, method_name)
         order = method(params={
-            'side': 'Sell',
+            'side': side,
             'symbol': normalized_symbol,
             'order_type': 'Limit',
             'qty': amount,
-            'price': sell_price,
+            'price': price,
             'stop_px': stop_price,
             'base_price': stop_price,
             'close_on_trigger': True,
@@ -267,15 +267,14 @@ class Playbook(ABC):
 
         return order
 
-    async def limit_stop_buy_order(self, amount, stop_price, sell_price):
-        params = {
-            'stopPrice': stop_price,
-            'type': 'stopLimit'
-        }
-        order = self.exchange.create_order(symbol=self.symbol,
-                                           type='limit',
-                                           side='sell',
-                                           amount=amount,
-                                           price=sell_price,
-                                           params=params)
-        return order
+    async def limit_stop_sell_order(self, amount, stop_price, sell_price):
+        return self.limit_stop_order(side='Sell',
+                                     amount=amount,
+                                     stop_price=stop_price,
+                                     price=sell_price)
+
+    async def limit_stop_buy_order(self, amount, stop_price, buy_price):
+        return self.limit_stop_order(side='Buy',
+                                     amount=amount,
+                                     stop_price=stop_price,
+                                     price=buy_price)
