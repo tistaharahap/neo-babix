@@ -59,11 +59,14 @@ def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None, 
         else:
             raise NotImplementedError('Testnet is wanted but the exchange does not support testnet')
 
+    return exchange
+
 
 async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
                         trade_on_close: bool = True) -> Dict[str, np.ndarray]:
     client = get_ccxt_client(exchange=exchange,
                              testnet=False)
+    print(client)
     if not client.has['fetchOHLCV']:
         raise TypeError(f'The exchange {exchange} does not let candles to be retrieved')
 
