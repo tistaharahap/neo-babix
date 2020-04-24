@@ -1,9 +1,9 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 case $1 in
   "run")
     shift
-    python app.py
+    python -u app.py
     ;;
   *)
     echo "usage: $0 [run]"
