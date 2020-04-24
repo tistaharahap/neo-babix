@@ -9,6 +9,8 @@ from neobabix.playbooks.playbook import Playbook
 from neobabix.strategies.strategy import Actions
 from neobabix.notifications.notification import Notification
 
+import asyncio
+
 
 class HitAndRun(Playbook):
     __name__ = 'HitAndRun Playbook'
@@ -78,6 +80,8 @@ class HitAndRun(Playbook):
         await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
                                                         modal_duid=str(self.modal_duid))
 
+        await asyncio.sleep(1)
+
     async def exit(self):
         self.info('Going to execute exit')
 
@@ -104,6 +108,8 @@ class HitAndRun(Playbook):
             # TP
             self.order_exit = await self.limit_sell_order(amount=self.modal_duid,
                                                           price=exit_price)
+
+            await asyncio.sleep(1)
 
             # Stop
             self.order_stop = await self.limit_stop_sell_order(amount=self.modal_duid,
@@ -133,6 +139,8 @@ class HitAndRun(Playbook):
             # TP
             self.order_exit = await self.limit_buy_order(amount=self.modal_duid,
                                                          price=exit_price)
+
+            await asyncio.sleep(1)
 
             # Stop
             self.order_stop = await self.limit_stop_buy_order(amount=self.modal_duid,
