@@ -1,4 +1,4 @@
-FROM python:3.7.1-alpine
+FROM python:3.7-slim
 
 # app workdir
 WORKDIR /app
@@ -9,15 +9,8 @@ COPY requirements.txt docker/*.sh ./
 # install dependecies
 RUN set -ex \
     # install system dependencies
-	&& apk add --update bash \
-	&& apk add --virtual .fetch-deps \
-	    gcc \
-	    musl-dev \
-	    libffi-dev \
-	    make \
-	    build-base \
-	    wget \
-	    openssl-dev \
+    && apt-get update \
+	&& apt-get install -y build-essential libssl-dev libffi-dev wget \
 	\
     # install app dependencies
     && rm -rf /var/lib/apt/lists/* \
@@ -40,7 +33,7 @@ RUN set -ex \
     && rm -rf /root/.cache/pip/* \
     \
     # clean system dependencies
-    && rm -rf /var/cache/apk/*
+    && apt-get clean
 
 # build app source code
 COPY . ./
