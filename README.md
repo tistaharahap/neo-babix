@@ -67,7 +67,7 @@ As of this writing notifications are only sent to a single destination. `Telegra
 
 ### Telegram
 
-All notification messages are sent as `MarkdownV2` message format. 
+All notification messages are sent as `HTML` message format. 
 
 #### Environment Variables
 
@@ -129,7 +129,7 @@ Trade lock is retained while the poll is running.
 
 ### Fractalism Playbook
 
-This playbook receives a `LONG` and `SHORT` action. Just lain `Hit And Run`, immmediately enters a position, creates a take profit order based on percentage while stops are based on last valid up/down fractals.
+This playbook receives a `LONG` and `SHORT` action. Just like `Hit And Run`, immmediately enters a position, creates a take profit order based on percentage while stops are based on last valid up/down fractals.
 
 ```
 Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => Notify => Destructured
