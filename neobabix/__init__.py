@@ -7,6 +7,7 @@ import numpy as np
 from ccxt.base.exchange import Exchange
 from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
+from neobabix.strategies.wisewilliamsnomfi import WiseWilliamsNoMFI
 from neobabix.strategies.dummylong import DummyLong
 from neobabix.strategies.dummyshort import DummyShort
 from neobabix.logger import get_logger
@@ -102,6 +103,7 @@ async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
 def get_strategy(strategy: str) -> Type[Strategy]:
     strategies: Dict[str, Type[Strategy]] = {
         'WiseWilliams': WiseWilliams,
+        'WiseWilliamsNoMFI': WiseWilliamsNoMFI,
         'DummyLong': DummyLong,
         'DummyShort': DummyShort
     }
