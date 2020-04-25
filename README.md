@@ -97,6 +97,14 @@ Short:
 
 Ideally this strategy needs to be paired with the `neobabix.playbooks.fractalism.Fractalism` playbook.
 
+### DummyLong Strategy
+
+This strategy always returns an `Actions.LONG` signal. Useful for testing, don't use in production.
+
+### DummyShort Strategy
+
+This strategy always returns an `Actions.SHORT` signal. Useful for testing, don't use in production.
+
 ## Trade Lock
 
 Using `asyncio` lock mechanism, an `asyncio.Lock` object is passed every tick. This lock is observed by `neobabix.playbooks.Playbook` objects. Will only trade if the lock is free.
