@@ -167,6 +167,14 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool, ohlcv:
 async def tick(trade_lock: Lock):
     logger.info('<< Tick has started >>')
 
+    logger.info(f'Strategy: {STRATEGY}')
+    logger.info(f'Playbook: {PLAYBOOK}')
+    logger.info(f'Candles: {CANDLES_EXCHANGE}')
+    logger.info(f'Trades: {TRADES_EXCHANGE}')
+    logger.info(f'Trade On Close: {TRADE_ON_CLOSE}')
+    logger.info(f'Leverage: {LEVERAGE}')
+    logger.info('--')
+
     trade_on_close = True if TRADE_ON_CLOSE == '1' else False
     logger.info(f'Trade on Close: {trade_on_close}')
 
