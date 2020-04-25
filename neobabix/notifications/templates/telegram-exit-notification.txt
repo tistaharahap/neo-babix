@@ -8,6 +8,11 @@ Exit Price: <b>$exitprice</b>
 Stop Price: <b>$stopprice</b>
 Settled: <b>$settled</b>
 
+Strategy: <b>$strategy</b>
+Playbook: <b>$playbook</b>
+Candles: <b>$candles_exchange</b>
+Trades: <b>$trades_exchange</b>
+
 Written with 💚 by the contributors at
 <a href="https://github.com/tistaharahap/neo-babix">NeoBabix</a>
 

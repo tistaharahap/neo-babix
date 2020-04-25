@@ -46,6 +46,10 @@ class Telegram(Notification):
                 'appname': self.app_name,
                 'entryprice': entry_price,
                 'modalduid': modal_duid,
+                'strategy': environ.get('STRATEGY'),
+                'playbook': environ.get('PLAYBOOK'),
+                'candles_exchange': environ.get('CANDLES_EXCHANGE'),
+                'trades_exchange': environ.get('TRADES_EXCHANGE'),
                 'chucknorris': self.chucknorris()
             }
 
@@ -65,6 +69,10 @@ class Telegram(Notification):
                     'stopprice': stop_limit_price,
                     'exitprice': exit_price,
                     'settled': 'Yes' if settled else 'No',
+                    'strategy': environ.get('STRATEGY'),
+                    'playbook': environ.get('PLAYBOOK'),
+                    'candles_exchange': environ.get('CANDLES_EXCHANGE'),
+                    'trades_exchange': environ.get('TRADES_EXCHANGE'),
                     'chucknorris': self.chucknorris()
                 }
 
@@ -82,6 +90,10 @@ class Telegram(Notification):
                     'exitprice': exit_price,
                     'settled': 'Yes' if settled else 'No',
                     'pnl': pnl_in_percent,
+                    'strategy': environ.get('STRATEGY'),
+                    'playbook': environ.get('PLAYBOOK'),
+                    'candles_exchange': environ.get('CANDLES_EXCHANGE'),
+                    'trades_exchange': environ.get('TRADES_EXCHANGE'),
                     'chucknorris': self.chucknorris()
                 }
 
