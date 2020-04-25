@@ -75,7 +75,7 @@ async def fetch_candles(symbol: str, exchange: str, timeframe: str = '1h',
 
     ohlcv = client.fetch_ohlcv(symbol=symbol,
                                timeframe=timeframe,
-                               limit=50)
+                               limit=100)
 
     opens = list(map(lambda x: x[1], ohlcv))
     highs = list(map(lambda x: x[2], ohlcv))
