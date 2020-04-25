@@ -127,6 +127,24 @@ Trade lock is retained while the poll is running.
 | `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
 | `STOP_LIMIT_DIFF` | Required float number |
 
+### Fractalism Playbook
+
+This playbook receives a `LONG` and `SHORT` action. Just lain `Hit And Run`, immmediately enters a position, creates a take profit order based on percentage while stops are based on last valid up/down fractals.
+
+```
+Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => Notify => Destructured
+```
+
+Trade lock is retained while the poll is running.
+
+### Environment Variables
+
+| Name | Description |
+| :--- | :--- |
+| `TAKE_PROFIT_IN_PERCENT` | Required float number |
+| `MODAL_DUID` | Required float number |
+| `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
+
 ## Running
 
 ### Run Locally

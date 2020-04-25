@@ -4,8 +4,8 @@ import asyncio
 
 
 async def main():
-    candles = await fetch_candles(symbol='BTC/USDT',
-                                  exchange='binance',
+    candles = await fetch_candles(symbol='BTC/USD',
+                                  exchange='bybit',
                                   timeframe='1h',
                                   trade_on_close=False)
     print(candles.get('highs'))
