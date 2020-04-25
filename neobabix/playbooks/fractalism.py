@@ -77,7 +77,8 @@ class Fractalism(Playbook):
 
     @property
     def last_valid_up_fractal(self):
-        fractals = list(filter(lambda x: x is not None, self.up_fractals))
+        current_price = float(self.ohlcv.get('closes')[-1])
+        fractals = list(filter(lambda x: x is not None and x > current_price, self.up_fractals))
         if len(fractals) == 0:
             return None
 
@@ -85,7 +86,8 @@ class Fractalism(Playbook):
 
     @property
     def last_valid_down_fractal(self):
-        fractals = list(filter(lambda x: x is not None, self.down_fractals))
+        current_price = float(self.ohlcv.get('closes')[-1])
+        fractals = list(filter(lambda x: x is not None and x < current_price, self.down_fractals))
         if len(fractals) == 0:
             return None
 
