@@ -12,6 +12,7 @@ from neobabix.strategies.dummyshort import DummyShort
 from neobabix.logger import get_logger
 from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
+from neobabix.playbooks.fractalism import Fractalism
 from neobabix.notifications.telegram import Telegram
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
@@ -111,7 +112,7 @@ def get_strategy(strategy: str) -> Type[Strategy]:
     return strategies.get(strategy)
 
 
-async def route_actions(action: Actions, trade_lock: Lock, testnet: bool):
+async def route_actions(action: Actions, trade_lock: Lock, testnet: bool, ohlcv: dict):
     if trade_lock.locked():
         logger.info('There is an ongoing trade, bailing out')
         return
@@ -127,7 +128,8 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool):
         return
 
     playbooks = {
-        'HitAndRun': HitAndRun
+        'HitAndRun': HitAndRun,
+        'Fractalism': Fractalism,
     }
     _playbook = playbooks.get(PLAYBOOK)
     if not _playbook:
@@ -154,7 +156,8 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool):
                          symbol=TRADE_SYMBOL,
                          timeframe=TIMEFRAME,
                          notification=notification,
-                         leverage=int(LEVERAGE))
+                         leverage=int(LEVERAGE),
+                         ohlcv=ohlcv)
 
     await playbook.play()
 
@@ -188,6 +191,7 @@ async def tick(trade_lock: Lock):
     use_testnet = True if TESTNET == '1' else False
     await route_actions(action=action,
                         trade_lock=trade_lock,
-                        testnet=use_testnet)
+                        testnet=use_testnet,
+                        ohlcv=candles)
 
     logger.info('<< Tick has ended >>')

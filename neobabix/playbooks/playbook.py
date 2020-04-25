@@ -4,7 +4,6 @@ from asyncio import Lock
 from datetime import datetime
 from logging import Logger
 from typing import Union
-from decimal import Decimal
 
 import ccxt
 from ccxt.base.exchange import Exchange
@@ -28,7 +27,8 @@ class Playbook(ABC):
     """
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
-                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None):
+                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None,
+                 ohlcv: dict = None):
         self.action = action
         if self.action != Actions.LONG and self.action != Actions.SHORT:
             raise NotImplementedError('Supported actions are LONG and SHORT')
@@ -41,6 +41,7 @@ class Playbook(ABC):
         self.timeframe = timeframe
         self.leverage = leverage
         self.notification = notification
+        self.ohlcv = ohlcv
 
         # Orders
         self.order_entry = {}

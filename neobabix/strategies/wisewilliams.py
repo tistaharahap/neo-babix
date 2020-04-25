@@ -1,7 +1,8 @@
-import numpy as np
 from logging import Logger
 
-from neobabix.indicators import MFI_GREEN, MFI_RED, MFI_GRAY
+import numpy as np
+
+from neobabix.indicators import MFI_GREEN
 from neobabix.indicators import UpFractal, DownFractal, MFI, AwesomeOscillator, AccelerationDecelerationOscillator
 from neobabix.indicators import WilliamsAlligatorJaws, WilliamsAlligatorTeeth, WilliamsAlligatorLips
 from .strategy import Strategy, Actions

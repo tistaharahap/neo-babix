@@ -8,33 +8,31 @@ from ccxt import Exchange, TRUNCATE
 from neobabix.playbooks.playbook import Playbook
 from neobabix.strategies.strategy import Actions
 from neobabix.notifications.notification import Notification
+from neobabix.indicators.billwilliams import UpFractal, DownFractal
 
 import asyncio
 
 
-class HitAndRun(Playbook):
-    __name__ = 'HitAndRun Playbook'
+class Fractalism(Playbook):
+    __name__ = 'Fractalism Playbook'
 
     """
-        This is the simplest playbook.
-        
+        This playbook gets stop prices from the last valid fractal.
+
         Entry:
             - Buy asset using market order
         Exit:
             - Immediately send an exit limit order at a predetermined percentage based on the buying price + fee
-            - Immediately send a stop limit order at a predetermined percentage based on the buying price
-        
+            - Immediately send a stop limit order based on the last valid fractal
+
         Env Vars:
             - TAKE_PROFIT_IN_PERCENT - required - float - ex: 1.0
-            - STOP_IN_PERCENT - required - float - ex: 0.5
             - MODAL_DUID - required - float - ex: 1000.0
             - PRICE_DECIMAL_PLACES - required - integer - ex: 0
-            - STOP_LIMIT_DIFF - required - float - ex: 10.0
     """
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
-                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None,
-                 ohlcv: dict = None):
+                 timeframe: str, notification: Notification, ohlcv, recursive: bool = False, leverage: int = None):
         super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, notification, recursive, leverage,
                          ohlcv)
 
@@ -42,11 +40,6 @@ class HitAndRun(Playbook):
         if not self.tp_in_percent:
             raise NotImplementedError('Required env var TAKE_PROFIT_IN_PERCENT must be set')
         self.tp_in_percent = float(self.tp_in_percent)
-
-        self.stop_in_percent = environ.get('STOP_IN_PERCENT')
-        if not self.stop_in_percent:
-            raise NotImplementedError('Required env var STOP_IN_PERCENT must be set')
-        self.stop_in_percent = float(self.stop_in_percent)
 
         self.modal_duid = environ.get('MODAL_DUID')
         if not self.modal_duid:
@@ -56,10 +49,8 @@ class HitAndRun(Playbook):
         if not self.price_decimal_places and not self.price_decimal_places == 0:
             raise NotImplementedError('Required env var PRICE_DECIMAL_PLACES must be set')
 
-        self.stop_limit_diff = environ.get('STOP_LIMIT_DIFF')
-        if not self.stop_limit_diff:
-            raise NotImplementedError('Required env var STOP_LIMIT_DIFF must be set')
-        self.stop_limit_diff = float(self.stop_limit_diff)
+        self.up_fractals = UpFractal(highs=ohlcv.get('highs'))
+        self.down_fractals = DownFractal(lows=ohlcv.get('lows'))
 
     async def entry(self):
         self.info('Going to execute entry')
@@ -84,8 +75,26 @@ class HitAndRun(Playbook):
 
         await asyncio.sleep(1)
 
+    @property
+    def last_valid_up_fractal(self):
+        fractals = list(filter(lambda x: x is not None, self.up_fractals))
+        if len(fractals) == 0:
+            return None
+
+        return float(fractals[-1])
+
+    @property
+    def last_valid_down_fractal(self):
+        fractals = list(filter(lambda x: x is not None, self.down_fractals))
+        if len(fractals) == 0:
+            return None
+
+        return float(fractals[-1])
+
     async def exit(self):
         self.info('Going to execute exit')
+
+        self.info('Calculating last valid fractal')
 
         if self.action == Actions.LONG:
             exit_price = Decimal(self.order_entry.get('price')) * Decimal(self.tp_in_percent + 100.0) / Decimal(100)
@@ -95,12 +104,10 @@ class HitAndRun(Playbook):
                                                             precision=self.price_decimal_places)
             self.info(f'Exit Price: {exit_price}')
 
-            stop_price = Decimal(self.order_entry.get('price')) * Decimal(100.0 - self.stop_in_percent) / Decimal(100)
-            stop_price = float(stop_price)
-            stop_sell_price = stop_price - self.stop_limit_diff
-            stop_price = self.exchange.decimal_to_precision(n=stop_price,
+            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_down_fractal,
                                                             rounding_mode=TRUNCATE,
                                                             precision=self.price_decimal_places)
+            stop_sell_price = self.last_valid_down_fractal - 10.0
             stop_sell_price = self.exchange.decimal_to_precision(n=stop_sell_price,
                                                                  rounding_mode=TRUNCATE,
                                                                  precision=self.price_decimal_places)
@@ -126,12 +133,10 @@ class HitAndRun(Playbook):
                                                             precision=self.price_decimal_places)
             self.info(f'Exit Price: {exit_price}')
 
-            stop_price = Decimal(self.order_entry.get('price')) * Decimal(self.tp_in_percent + 100.0) / Decimal(100)
-            stop_price = float(stop_price)
-            stop_buy_price = stop_price + self.stop_limit_diff
-            stop_price = self.exchange.decimal_to_precision(n=stop_price,
+            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_up_fractal,
                                                             rounding_mode=TRUNCATE,
                                                             precision=self.price_decimal_places)
+            stop_buy_price = self.last_valid_up_fractal + 10.0
             stop_buy_price = self.exchange.decimal_to_precision(n=stop_buy_price,
                                                                 rounding_mode=TRUNCATE,
                                                                 precision=self.price_decimal_places)
