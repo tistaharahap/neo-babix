@@ -55,7 +55,47 @@ class VWMAStrategy(Strategy):
             return Actions.SHORT
 ```
 
-A more robust strategy can be found [here](neobabix/strategies/wisewilliams.py).
+### WiseWilliams Strategy
+
+This strategy comes from Bill Williams 2 eye opener books [Trading Chaos](https://www.goodreads.com/en/book/show/621895.Trading_Chaos) and [New Trading Dimension](https://www.goodreads.com/book/show/1533833.New_Trading_Dimensions).
+
+These are the conditions that must be met in order for the strategy to produce an actionable signal.
+
+```
+Long:
+    - Accelerator Oscillator is blue
+    - Awesome Oscillator is green
+    - Price is above Alligator's lips
+    - Market Facilitation Index is green
+
+Short:
+    - Accelerator Oscillator is red
+    - Awesome Oscillator is green
+    - Price is below Alligator's lips
+    - Market Facilitation Index is green
+```
+
+There are more conditions that needs to be met, more details [here](neobabix/strategies/wisewilliams.py).
+
+### WiseWilliamsNoMFI Strategy
+
+This strategy is like the `WiseWilliams` strategy only that the MFI confirmation is not used.
+
+These are the conditions that must be met in order for the strategy to produce an actionable signal.
+
+```
+Long:
+    - Accelerator Oscillator is blue
+    - Awesome Oscillator is green
+    - Price is above Alligator's lips
+
+Short:
+    - Accelerator Oscillator is red
+    - Awesome Oscillator is green
+    - Price is below Alligator's lips
+```
+
+Ideally this strategy needs to be paired with the `neobabix.playbooks.fractalism.Fractalism` playbook.
 
 ## Trade Lock
 
