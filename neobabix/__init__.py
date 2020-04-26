@@ -14,6 +14,7 @@ from neobabix.logger import get_logger
 from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
 from neobabix.playbooks.fractalism import Fractalism
+from neobabix.playbooks.fractalismfibo import FractalismFibo
 from neobabix.notifications.telegram import Telegram
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
@@ -132,6 +133,7 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool, ohlcv:
     playbooks = {
         'HitAndRun': HitAndRun,
         'Fractalism': Fractalism,
+        'FractalismFibo': FractalismFibo
     }
     _playbook = playbooks.get(PLAYBOOK)
     if not _playbook:

@@ -3,44 +3,39 @@ from logging import Logger
 from os import environ
 from decimal import Decimal
 
+import asyncio
+
 from ccxt import Exchange, TRUNCATE
 
-from neobabix.playbooks.playbook import Playbook
-from neobabix.strategies.strategy import Actions
+from neobabix import Actions
 from neobabix.notifications.notification import Notification
+from neobabix.playbooks.playbook import Playbook
 from neobabix.indicators.billwilliams import UpFractal, DownFractal
 from neobabix.constants import BETWEEN_ORDERS_SLEEP
 
-import asyncio
 
-
-class Fractalism(Playbook):
-    __name__ = 'Fractalism Playbook'
+class FractalismFibo(Playbook):
+    __name__ = 'FractalismFibo Playbook'
 
     """
-        This playbook gets stop prices from the last valid fractal.
+            This playbook gets exit prices from fibonacci levels and stop prices from the last valid fractal.
 
-        Entry:
-            - Buy asset using market order
-        Exit:
-            - Immediately send an exit limit order at a predetermined percentage based on the buying price + fee
-            - Immediately send a stop limit order based on the last valid fractal
+            Entry:
+                - Buy asset using market order
+            Exit:
+                - Immediately send an exit limit order at a predetermined percentage based on the buying price + fee
+                - Immediately send a stop limit order based on the last valid fractal
 
-        Env Vars:
-            - TAKE_PROFIT_IN_PERCENT - required - float - ex: 1.0
-            - MODAL_DUID - required - float - ex: 1000.0
-            - PRICE_DECIMAL_PLACES - required - integer - ex: 0
-    """
+            Env Vars:
+                - MODAL_DUID - required - float - ex: 1000.0
+                - PRICE_DECIMAL_PLACES - required - integer - ex: 0
+                - EXIT_LEVEL_UP - required - integer[1|2|3|4] - ex: 1
+        """
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
                  timeframe: str, notification: Notification, ohlcv, recursive: bool = False, leverage: int = None):
         super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, notification, recursive, leverage,
                          ohlcv)
-
-        self.tp_in_percent = environ.get('TAKE_PROFIT_IN_PERCENT')
-        if not self.tp_in_percent:
-            raise NotImplementedError('Required env var TAKE_PROFIT_IN_PERCENT must be set')
-        self.tp_in_percent = float(self.tp_in_percent)
 
         self.modal_duid = environ.get('MODAL_DUID')
         if not self.modal_duid:
@@ -50,8 +45,31 @@ class Fractalism(Playbook):
         if not self.price_decimal_places and not self.price_decimal_places == 0:
             raise NotImplementedError('Required env var PRICE_DECIMAL_PLACES must be set')
 
+        self.exit_level_up = int(environ.get('EXIT_LEVEL_UP'))
+        if not self.exit_level_up:
+            raise NotImplementedError('Required env var EXIT_LEVEL_UP must be set')
+
         self.up_fractals = UpFractal(highs=ohlcv.get('highs'))
         self.down_fractals = DownFractal(lows=ohlcv.get('lows'))
+
+    @property
+    def fibo_levels(self) -> dict:
+        highs = self.ohlcv.get('highs')
+        lows = self.ohlcv.get('lows')
+
+        highest = max(highs)
+        lowest = min(lows)
+
+        return {
+            '1000': highest,
+            '786': 0.786 * highest,
+            '650': 0.65 * highest,
+            '618': 0.618 * highest,
+            '500': 0.5 * highest,
+            '382': 0.382 * highest,
+            '236': 0.236 * highest,
+            '0': lowest
+        }
 
     @property
     def last_valid_up_fractal(self):
@@ -70,26 +88,6 @@ class Fractalism(Playbook):
             return None
 
         return float(fractals[-1])
-
-    @property
-    def exit_price(self):
-        if self.entry_price is None:
-            return None
-
-        exit_price = None
-        if self.action == Actions.LONG:
-            exit_price = Decimal(self.entry_price) * Decimal(self.tp_in_percent + 100.0) / Decimal(100)
-            exit_price = float(exit_price)
-            exit_price = self.exchange.decimal_to_precision(n=exit_price,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-        elif self.action == Actions.SHORT:
-            exit_price = Decimal(self.entry_price) * Decimal(100.0 - self.tp_in_percent) / Decimal(100)
-            exit_price = float(exit_price)
-            exit_price = self.exchange.decimal_to_precision(n=exit_price,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-        return exit_price
 
     @property
     def stop_price(self):
@@ -125,6 +123,33 @@ class Fractalism(Playbook):
                                                                    precision=self.price_decimal_places)
 
         return stop_action_price
+
+    @property
+    def exit_price(self):
+        if self.entry_price is None:
+            return None
+
+        if self.exit_level_up > 4:
+            raise NotImplementedError('The exit level up requested is not supported')
+
+        if self.action == Actions.LONG:
+            if self.exit_level_up == 1:
+                return self.fibo_levels.get('618')
+            elif self.exit_level_up == 2:
+                return self.fibo_levels.get('650')
+            elif self.exit_level_up == 3:
+                return self.fibo_levels.get('786')
+            elif self.exit_level_up == 4:
+                return self.fibo_levels.get('1000')
+        elif self.action == Actions.SHORT:
+            if self.exit_level_up == 1:
+                return self.fibo_levels.get('382')
+            elif self.exit_level_up == 2:
+                return self.fibo_levels.get('236')
+            elif self.exit_level_up == 3:
+                return self.fibo_levels.get('0')
+            else:
+                raise TypeError('Shorts can only have maximum of 3 levels up')
 
     async def entry(self):
         self.info('Going to execute entry')

@@ -80,6 +80,31 @@ class Playbook(ABC):
     async def after_exit(self):
         pass
 
+    @property
+    def current_price(self):
+        return float(self.ohlcv.get('closes')[-1])
+
+    @property
+    def entry_price(self):
+        if self.order_entry is None:
+            return None
+        return float(self.order_entry.get('price'))
+
+    @abstractmethod
+    @property
+    def exit_price(self):
+        return None
+
+    @abstractmethod
+    @property
+    def stop_price(self):
+        return None
+
+    @abstractmethod
+    @property
+    def stop_action_price(self):
+        return None
+
     async def notify(self, message):
         # TODO: Notification mechanism to notify for significant events
         pass
