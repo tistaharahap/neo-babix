@@ -193,6 +193,24 @@ Trade lock is retained while the poll is running.
 | `MODAL_DUID` | Required float number |
 | `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
 
+### FractalismFibo Playbook
+
+This playbook receives a `LONG` and `SHORT` action. Just like `Hit And Run`, immmediately enters a position, creates a take profit order based on fibonacci levels while stops are based on last valid up/down fractals.
+
+```
+Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => Notify => Destructured
+```
+
+Trade lock is retained while the poll is running.
+
+### Environment Variables
+
+| Name | Description |
+| :--- | :--- |
+| `EXIT_LEVEL_UP` | Required integer number, shorts max at 3 while longs max at 4 |
+| `MODAL_DUID` | Required float number |
+| `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
+
 ## Running
 
 ### Run Locally
