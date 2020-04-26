@@ -58,7 +58,7 @@ class Telegram(Notification):
             await self.send_message(message=message)
 
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool, pnl_in_percent: Union[int, str] = None):
+                                     settled: bool, pnl_in_percent: Union[int, float, str] = None):
         if not settled:
             with open('neobabix/notifications/templates/telegram-exit-notification.txt', 'r') as f:
                 src = Template(f.read())

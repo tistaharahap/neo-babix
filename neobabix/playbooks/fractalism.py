@@ -9,6 +9,7 @@ from neobabix.playbooks.playbook import Playbook
 from neobabix.strategies.strategy import Actions
 from neobabix.notifications.notification import Notification
 from neobabix.indicators.billwilliams import UpFractal, DownFractal
+from neobabix.constants import BETWEEN_ORDERS_SLEEP
 
 import asyncio
 
@@ -52,6 +53,85 @@ class Fractalism(Playbook):
         self.up_fractals = UpFractal(highs=ohlcv.get('highs'))
         self.down_fractals = DownFractal(lows=ohlcv.get('lows'))
 
+    @property
+    def last_valid_up_fractal(self):
+        current_price = float(self.ohlcv.get('closes')[-1])
+        fractals = list(filter(lambda x: x is not None and x > current_price, self.up_fractals))
+        if len(fractals) == 0:
+            return None
+
+        return float(fractals[-1])
+
+    @property
+    def last_valid_down_fractal(self):
+        current_price = float(self.ohlcv.get('closes')[-1])
+        fractals = list(filter(lambda x: x is not None and x < current_price, self.down_fractals))
+        if len(fractals) == 0:
+            return None
+
+        return float(fractals[-1])
+
+    @property
+    def entry_price(self):
+        if not self.order_entry:
+            return None
+        return self.order_entry.get('price')
+
+    @property
+    def exit_price(self):
+        if self.entry_price is None:
+            return None
+
+        exit_price = None
+        if self.action == Actions.LONG:
+            exit_price = Decimal(self.entry_price) * Decimal(self.tp_in_percent + 100.0) / Decimal(100)
+            exit_price = float(exit_price)
+            exit_price = self.exchange.decimal_to_precision(n=exit_price,
+                                                            rounding_mode=TRUNCATE,
+                                                            precision=self.price_decimal_places)
+        elif self.action == Actions.SHORT:
+            exit_price = Decimal(self.entry_price) * Decimal(100.0 - self.tp_in_percent) / Decimal(100)
+            exit_price = float(exit_price)
+            exit_price = self.exchange.decimal_to_precision(n=exit_price,
+                                                            rounding_mode=TRUNCATE,
+                                                            precision=self.price_decimal_places)
+        return exit_price
+
+    @property
+    def stop_price(self):
+        if self.entry_price is None:
+            return None
+
+        stop_price = None
+        if self.action == Actions.LONG:
+            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_down_fractal,
+                                                            rounding_mode=TRUNCATE,
+                                                            precision=self.price_decimal_places)
+        elif self.action == Actions.SHORT:
+            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_up_fractal,
+                                                            rounding_mode=TRUNCATE,
+                                                            precision=self.price_decimal_places)
+        return stop_price
+
+    @property
+    def stop_action_price(self):
+        if self.entry_price is None:
+            return None
+
+        stop_action_price = None
+        if self.action == Actions.LONG:
+            stop_action_price = self.last_valid_down_fractal - 10.0
+            stop_action_price = self.exchange.decimal_to_precision(n=stop_action_price,
+                                                                   rounding_mode=TRUNCATE,
+                                                                   precision=self.price_decimal_places)
+        elif self.action == Actions.SHORT:
+            stop_action_price = self.last_valid_up_fractal + 10.0
+            stop_action_price = self.exchange.decimal_to_precision(n=stop_action_price,
+                                                                   rounding_mode=TRUNCATE,
+                                                                   precision=self.price_decimal_places)
+
+        return stop_action_price
+
     async def entry(self):
         self.info('Going to execute entry')
         if self.leverage is not None:
@@ -73,99 +153,47 @@ class Fractalism(Playbook):
         await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
                                                         modal_duid=str(self.modal_duid))
 
-        await asyncio.sleep(1)
-
-    @property
-    def last_valid_up_fractal(self):
-        current_price = float(self.ohlcv.get('closes')[-1])
-        fractals = list(filter(lambda x: x is not None and x > current_price, self.up_fractals))
-        if len(fractals) == 0:
-            return None
-
-        return float(fractals[-1])
-
-    @property
-    def last_valid_down_fractal(self):
-        current_price = float(self.ohlcv.get('closes')[-1])
-        fractals = list(filter(lambda x: x is not None and x < current_price, self.down_fractals))
-        if len(fractals) == 0:
-            return None
-
-        return float(fractals[-1])
+        self.info(f'Sleeping for {BETWEEN_ORDERS_SLEEP} seconds before submitting exit/stop orders')
+        await asyncio.sleep(BETWEEN_ORDERS_SLEEP)
 
     async def exit(self):
         self.info('Going to execute exit')
 
-        self.info('Calculating last valid fractal')
+        exit_order_method = stop_order_method = None
 
         if self.action == Actions.LONG:
-            exit_price = Decimal(self.order_entry.get('price')) * Decimal(self.tp_in_percent + 100.0) / Decimal(100)
-            exit_price = float(exit_price)
-            exit_price = self.exchange.decimal_to_precision(n=exit_price,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-            self.info(f'Exit Price: {exit_price}')
-
-            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_down_fractal,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-            stop_sell_price = self.last_valid_down_fractal - 10.0
-            stop_sell_price = self.exchange.decimal_to_precision(n=stop_sell_price,
-                                                                 rounding_mode=TRUNCATE,
-                                                                 precision=self.price_decimal_places)
-            self.info(f'Stop Price: {stop_price}')
-            self.info(f'Stop Sell Price: {stop_sell_price}')
-
-            # TP
-            self.order_exit = await self.limit_sell_order(amount=self.modal_duid,
-                                                          price=exit_price)
-
-            await asyncio.sleep(1)
-
-            # Stop
-            self.order_stop = await self.limit_stop_sell_order(amount=self.modal_duid,
-                                                               stop_price=stop_price,
-                                                               sell_price=stop_sell_price,
-                                                               base_price=self.order_entry.get('price'))
+            exit_order_method = self.limit_sell_order
+            stop_order_method = self.limit_stop_sell_order
         elif self.action == Actions.SHORT:
-            exit_price = Decimal(self.order_entry.get('price')) * Decimal(100.0 - self.tp_in_percent) / Decimal(100)
-            exit_price = float(exit_price)
-            exit_price = self.exchange.decimal_to_precision(n=exit_price,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-            self.info(f'Exit Price: {exit_price}')
+            exit_order_method = self.limit_buy_order
+            stop_order_method = self.limit_stop_buy_order
 
-            stop_price = self.exchange.decimal_to_precision(n=self.last_valid_up_fractal,
-                                                            rounding_mode=TRUNCATE,
-                                                            precision=self.price_decimal_places)
-            stop_buy_price = self.last_valid_up_fractal + 10.0
-            stop_buy_price = self.exchange.decimal_to_precision(n=stop_buy_price,
-                                                                rounding_mode=TRUNCATE,
-                                                                precision=self.price_decimal_places)
-            self.info(f'Stop Price: {stop_price}')
-            self.info(f'Stop Buy Price: {stop_buy_price}')
+        self.info(f'Exit Price: {self.exit_price}')
+        self.info(f'Stop Price: {self.stop_price}')
+        self.info(f'Stop Sell Price: {self.stop_action_price}')
 
-            # TP
-            self.order_exit = await self.limit_buy_order(amount=self.modal_duid,
-                                                         price=exit_price)
+        # TP
+        self.order_exit = await exit_order_method(amount=self.modal_duid,
+                                                  price=self.exit_price)
 
-            await asyncio.sleep(1)
+        self.info(f'Sleeping for {BETWEEN_ORDERS_SLEEP} seconds before submitting stop order')
+        await asyncio.sleep(BETWEEN_ORDERS_SLEEP)
 
-            # Stop
-            self.order_stop = await self.limit_stop_buy_order(amount=self.modal_duid,
-                                                              stop_price=stop_price,
-                                                              buy_price=stop_buy_price,
-                                                              base_price=self.order_entry.get('price'))
+        # Stop
+        self.order_stop = await stop_order_method(amount=self.modal_duid,
+                                                  stop_price=self.stop_price,
+                                                  sell_price=self.stop_action_price,
+                                                  base_price=self.entry_price)
 
-            self.info('TP and SL orders are created')
+        self.info('TP and SL orders are created')
 
     async def after_exit(self):
         self.info('Done creating orders, polling for exits')
 
-        await self.notification.send_exit_notification(entry_price=str(self.order_entry.get('price')),
+        await self.notification.send_exit_notification(entry_price=str(self.entry_price),
                                                        modal_duid=str(self.modal_duid),
-                                                       exit_price=str(self.order_exit.get('price')),
-                                                       stop_limit_price=str(self.order_stop.get('price')),
+                                                       exit_price=str(self.exit_price),
+                                                       stop_limit_price=str(self.stop_price),
                                                        settled=False)
 
         poll_result = await self.poll_results()
@@ -176,7 +204,7 @@ class Fractalism(Playbook):
         self.order_stop = poll_result.get('stop_order')
         self.info(f'Stop order status: {self.order_stop.get("status")}')
 
-        entry_price = Decimal(self.order_entry.get('price'))
+        entry_price = Decimal(self.entry_price)
         exit_price = None
         won = None
 
@@ -184,21 +212,21 @@ class Fractalism(Playbook):
         if self.order_exit.get('status') == 'closed':
             self.info('Cancelling stop order')
             await self.cancel_order(order_id=self.order_stop.get('id'))
-            exit_price = Decimal(self.order_exit.get('price'))
+            exit_price = Decimal(self.exit_price)
             won = True
         elif self.order_stop.get('status') == 'closed':
             self.info('Cancelling exit order')
-            exit_price = Decimal(self.order_stop.get('price'))
+            exit_price = Decimal(self.stop_price)
             await self.cancel_order(order_id=self.order_exit.get('id'))
             won = False
 
         if won is None:
             self.info('User canceled the orders, breaking..')
             self.info('Sending exit notification')
-            await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
-                                                           exit_price=self.order_exit.get('price'),
-                                                           stop_limit_price=self.order_stop.get('price'),
-                                                           modal_duid=self.modal_duid,
+            await self.notification.send_exit_notification(entry_price=str(self.entry_price),
+                                                           exit_price=str(self.exit_price),
+                                                           stop_limit_price=str(self.stop_price),
+                                                           modal_duid=str(self.modal_duid),
                                                            settled=True,
                                                            pnl_in_percent='n/a')
             return
@@ -214,12 +242,12 @@ class Fractalism(Playbook):
         elif self.action == Actions.SHORT and not won:
             pnl = (exit_price / entry_price * Decimal(100) - Decimal(100)) * Decimal(-1)
 
-        pnl = int(pnl)
+        pnl = float(pnl)
 
         self.info('Sending exit notification')
-        await self.notification.send_exit_notification(entry_price=self.order_entry.get('price'),
-                                                       exit_price=self.order_exit.get('price'),
-                                                       stop_limit_price=self.order_stop.get('price'),
-                                                       modal_duid=self.modal_duid,
+        await self.notification.send_exit_notification(entry_price=str(self.entry_price),
+                                                       exit_price=str(self.exit_price),
+                                                       stop_limit_price=str(self.stop_price),
+                                                       modal_duid=str(self.modal_duid),
                                                        settled=True,
                                                        pnl_in_percent=pnl)
