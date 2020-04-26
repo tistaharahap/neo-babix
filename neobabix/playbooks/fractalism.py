@@ -176,7 +176,7 @@ class Fractalism(Playbook):
         # Stop
         self.order_stop = await stop_order_method(amount=self.modal_duid,
                                                   stop_price=self.stop_price,
-                                                  sell_price=self.stop_action_price,
+                                                  stop_action_price=self.stop_action_price,
                                                   base_price=self.entry_price)
 
         self.info('TP and SL orders are created')

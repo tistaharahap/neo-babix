@@ -90,18 +90,18 @@ class Playbook(ABC):
             return None
         return float(self.order_entry.get('price'))
 
-    @abstractmethod
     @property
+    @abstractmethod
     def exit_price(self):
         return None
 
-    @abstractmethod
     @property
+    @abstractmethod
     def stop_price(self):
         return None
 
-    @abstractmethod
     @property
+    @abstractmethod
     def stop_action_price(self):
         return None
 
@@ -294,16 +294,16 @@ class Playbook(ABC):
 
         return order
 
-    async def limit_stop_sell_order(self, amount, stop_price, sell_price, base_price):
+    async def limit_stop_sell_order(self, amount, stop_price, stop_action_price, base_price):
         return await self.limit_stop_order(side='Sell',
                                            amount=amount,
                                            stop_price=stop_price,
-                                           price=sell_price,
+                                           price=stop_action_price,
                                            base_price=base_price)
 
-    async def limit_stop_buy_order(self, amount, stop_price, buy_price, base_price):
+    async def limit_stop_buy_order(self, amount, stop_price, stop_action_price, base_price):
         return await self.limit_stop_order(side='Buy',
                                            amount=amount,
                                            stop_price=stop_price,
-                                           price=buy_price,
+                                           price=stop_action_price,
                                            base_price=base_price)

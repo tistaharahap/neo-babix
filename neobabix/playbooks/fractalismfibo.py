@@ -60,15 +60,30 @@ class FractalismFibo(Playbook):
         highest = max(highs)
         lowest = min(lows)
 
+        delta_long = highest - self.current_price
+        delta_short = self.current_price - lowest
+
         return {
-            '1000': highest,
-            '786': 0.786 * highest,
-            '650': 0.65 * highest,
-            '618': 0.618 * highest,
-            '500': 0.5 * highest,
-            '382': 0.382 * highest,
-            '236': 0.236 * highest,
-            '0': lowest
+            Actions.LONG: {
+                '1000': highest,
+                '786': self.current_price + delta_long * 0.786,
+                '650': self.current_price + delta_long * 0.650,
+                '618': self.current_price + delta_long * 0.618,
+                '500': self.current_price + delta_long * 0.500,
+                '382': self.current_price + delta_long * 0.382,
+                '236': self.current_price + delta_long * 0.236,
+                '0': self.current_price
+            },
+            Actions.SHORT: {
+                '0': self.current_price,
+                '236': self.current_price - delta_short * 0.236,
+                '382': self.current_price - delta_short * 0.382,
+                '500': self.current_price - delta_short * 0.500,
+                '618': self.current_price - delta_short * 0.618,
+                '650': self.current_price - delta_short * 0.650,
+                '786': self.current_price - delta_short * 0.786,
+                '1000': lowest
+            }
         }
 
     @property
@@ -129,27 +144,20 @@ class FractalismFibo(Playbook):
         if self.entry_price is None:
             return None
 
-        if self.exit_level_up > 4:
+        if self.exit_level_up > 7:
             raise NotImplementedError('The exit level up requested is not supported')
 
-        if self.action == Actions.LONG:
-            if self.exit_level_up == 1:
-                return self.fibo_levels.get('618')
-            elif self.exit_level_up == 2:
-                return self.fibo_levels.get('650')
-            elif self.exit_level_up == 3:
-                return self.fibo_levels.get('786')
-            elif self.exit_level_up == 4:
-                return self.fibo_levels.get('1000')
-        elif self.action == Actions.SHORT:
-            if self.exit_level_up == 1:
-                return self.fibo_levels.get('382')
-            elif self.exit_level_up == 2:
-                return self.fibo_levels.get('236')
-            elif self.exit_level_up == 3:
-                return self.fibo_levels.get('0')
-            else:
-                raise TypeError('Shorts can only have maximum of 3 levels up')
+        fibo_levels = {
+            1: self.fibo_levels.get(self.action).get('236'),
+            2: self.fibo_levels.get(self.action).get('382'),
+            3: self.fibo_levels.get(self.action).get('500'),
+            4: self.fibo_levels.get(self.action).get('618'),
+            5: self.fibo_levels.get(self.action).get('650'),
+            6: self.fibo_levels.get(self.action).get('786'),
+            7: self.fibo_levels.get(self.action).get('1000'),
+        }
+
+        return fibo_levels.get(self.exit_level_up)
 
     async def entry(self):
         self.info('Going to execute entry')
@@ -201,7 +209,7 @@ class FractalismFibo(Playbook):
         # Stop
         self.order_stop = await stop_order_method(amount=self.modal_duid,
                                                   stop_price=self.stop_price,
-                                                  sell_price=self.stop_action_price,
+                                                  stop_action_price=self.stop_action_price,
                                                   base_price=self.entry_price)
 
         self.info('TP and SL orders are created')
