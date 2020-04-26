@@ -165,7 +165,7 @@ Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => 
 
 Trade lock is retained while the poll is running.
 
-### Environment Variables
+#### Environment Variables
 
 | Name | Description |
 | :--- | :--- |
@@ -185,7 +185,7 @@ Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => 
 
 Trade lock is retained while the poll is running.
 
-### Environment Variables
+#### Environment Variables
 
 | Name | Description |
 | :--- | :--- |
@@ -203,7 +203,49 @@ Entry => Notify => Take Profit Order => Stop Limit Order => Poll for results => 
 
 Trade lock is retained while the poll is running.
 
-### Environment Variables
+#### Fibonacci Levels for Exits
+
+There are in total 7 Fibonacci levels valid for the `EXIT_LEVEL_UP` env var:
+
+```
+1: 0.236
+2: 0.382
+3: 0.5
+4: 0.618
+5: 0.65
+6: 0.786
+7: 1.0
+```
+
+The levels are derived from the last 100 candles. The highest fractal used for longs while the lowest fractal used for shorts.
+
+Long levels are described as:
+
+```
+0: Current Price
+0.236: Current Price + (Highest - Current Price) * 0.236
+0.382: Current Price + (Highest - Current Price) * 0.382
+0.500: Current Price + (Highest - Current Price) * 0.500
+0.618: Current Price + (Highest - Current Price) * 0.618
+0.650: Current Price + (Highest - Current Price) * 0.650
+0.786: Current Price + (Highest - Current Price) * 0.786
+1.000: Highest
+```
+
+Short levels are described as:
+
+```
+0: Current Price
+0.236: Current Price - (Current Price - Lowest) * 0.236
+0.382: Current Price - (Current Price - Lowest) * 0.382
+0.500: Current Price - (Current Price - Lowest) * 0.500
+0.618: Current Price - (Current Price - Lowest) * 0.618
+0.650: Current Price - (Current Price - Lowest) * 0.650
+0.786: Current Price - (Current Price - Lowest) * 0.786
+1.000: Lowest
+```
+
+#### Environment Variables
 
 | Name | Description |
 | :--- | :--- |
