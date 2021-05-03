@@ -1,10 +1,10 @@
-FROM python:3.7-slim
+FROM python:3.8-slim
 
 # app workdir
 WORKDIR /app
 
 # copy app dependencies
-COPY requirements.txt docker/*.sh ./
+COPY poetry.lock pyproject.toml docker/*.sh ./
 
 # install dependecies
 RUN set -ex \
@@ -26,8 +26,8 @@ RUN set -ex \
     && pip install --upgrade pip \
     && pip install cython \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    && pip install numpy \
-    && pip install -r ./requirements.txt --upgrade \
+    && pip install poetry numpy \
+    && poetry install \
     \
     # clean pip cache
     && rm -rf /root/.cache/pip/* \
