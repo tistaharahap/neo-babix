@@ -45,10 +45,21 @@ class DCA(Playbook):
             self.logger.info(f'Not going to enter trade, not enough balance: {free_balance}')
             return
 
+        if self.action == Actions.LONG:
+            self.logger.info('Entering a LONG position')
+            self.order_entry = await self.market_buy_order(amount=free_balance)
+
     async def after_entry(self):
         if not self.order_entry:
             self.logger.info('No entry detected, bailing..')
             return
+
+        self.info(f'Successfully entered a trade')
+        self.info(f'Modal Duid: {MODAL_DUID}')
+        self.info(f'Entry Price: {self.order_entry.get("price")}')
+
+        await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
+                                                        modal_duid=str(MODAL_DUID))
 
     async def exit(self):
         self.logger.info('Exit not used')
