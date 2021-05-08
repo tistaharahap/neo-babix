@@ -140,7 +140,8 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool, ohlcv:
     playbooks = {
         'HitAndRun': HitAndRun,
         'Fractalism': Fractalism,
-        'FractalismFibo': FractalismFibo
+        'FractalismFibo': FractalismFibo,
+        'DCA': DCA,
     }
     _playbook = playbooks.get(PLAYBOOK)
     if not _playbook:
