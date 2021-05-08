@@ -8,6 +8,7 @@ from ccxt.base.exchange import Exchange
 from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
 from neobabix.strategies.wisewilliamsnomfi import WiseWilliamsNoMFI
+from neobabix.strategies.ema528dca import EMA528DCA
 from neobabix.strategies.dummylong import DummyLong
 from neobabix.strategies.dummyshort import DummyShort
 from neobabix.logger import get_logger
@@ -15,6 +16,7 @@ from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
 from neobabix.playbooks.fractalism import Fractalism
 from neobabix.playbooks.fractalismfibo import FractalismFibo
+from neobabix.playbooks.dca import DCA
 from neobabix.notifications.telegram import Telegram
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
@@ -105,6 +107,7 @@ def get_strategy(strategy: str) -> Type[Strategy]:
     strategies: Dict[str, Type[Strategy]] = {
         'WiseWilliams': WiseWilliams,
         'WiseWilliamsNoMFI': WiseWilliamsNoMFI,
+        'EMA528DCA': EMA528DCA,
         'DummyLong': DummyLong,
         'DummyShort': DummyShort
     }

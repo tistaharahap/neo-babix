@@ -97,6 +97,10 @@ Short:
 
 Ideally this strategy needs to be paired with the `neobabix.playbooks.fractalism.Fractalism` playbook.
 
+### EMA528 DCA Strategy
+
+
+
 ### DummyLong Strategy
 
 This strategy always returns an `Actions.LONG` signal. Useful for testing, don't use in production.
