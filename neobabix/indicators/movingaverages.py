@@ -18,3 +18,8 @@ def VWMA(closes: np.ndarray, volumes: np.ndarray, period: int = 20) -> np.ndarra
     ma_v = ta.SMA(volumes,
                   timeperiod=period)
     return np.array(ma_cv) / np.array(ma_v)
+
+
+def EMA(closes: np.ndarray, period: int) -> np.ndarray:
+    return ta.EMA(closes,
+                  timeperiod=period)

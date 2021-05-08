@@ -11,7 +11,8 @@ from .strategy import Strategy, Actions
 class WiseWilliams(Strategy):
     __name__ = 'WiseWilliams Strategy'
 
-    def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray, logger: Logger):
+    def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray,
+                 logger: Logger):
         super().__init__(opens, highs, lows, closes, volumes, logger)
 
         self.debug(f'Candle size: {len(self.highs)}')
