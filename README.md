@@ -97,10 +97,6 @@ Short:
 
 Ideally this strategy needs to be paired with the `neobabix.playbooks.fractalism.Fractalism` playbook.
 
-### EMA528 DCA Strategy
-
-
-
 ### DummyLong Strategy
 
 This strategy always returns an `Actions.LONG` signal. Useful for testing, don't use in production.
@@ -295,6 +291,7 @@ $ vim run-local.sh # Fill in the values
 | `PLAYBOOK` | The playbook to be used for the boot, defaults to `HitAndRun` |
 | `NOTIFY_USING` | The notification channel used, defaults to `telegram` |
 | `LEVERAGE` | The leverage used on margin trading exchanges, do not set to trade without leverage |
+| `CRON_EXPRESSION` | Crontab like expression for the scheduler to schedule tick times |
 
 ## Contributors
 
