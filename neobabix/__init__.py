@@ -9,6 +9,8 @@ from neobabix.strategies.strategy import Strategy, Actions
 from neobabix.strategies.wisewilliams import WiseWilliams
 from neobabix.strategies.wisewilliamsnomfi import WiseWilliamsNoMFI
 from neobabix.strategies.ema528dca import EMA528DCA
+from neobabix.strategies.buyeveryweek import BuyEveryWeek
+from neobabix.strategies.moonphasebuy import MoonPhaseBuy
 from neobabix.strategies.dummylong import DummyLong
 from neobabix.strategies.dummyshort import DummyShort
 from neobabix.logger import get_logger
@@ -108,6 +110,8 @@ def get_strategy(strategy: str) -> Type[Strategy]:
         'WiseWilliams': WiseWilliams,
         'WiseWilliamsNoMFI': WiseWilliamsNoMFI,
         'EMA528DCA': EMA528DCA,
+        'BuyEveryWeek': BuyEveryWeek,
+        'MoonPhaseBuy': MoonPhaseBuy,
         'DummyLong': DummyLong,
         'DummyShort': DummyShort
     }

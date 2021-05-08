@@ -9,7 +9,7 @@ from neobabix import Actions
 from neobabix.playbooks.playbook import Playbook
 from neobabix.notifications.notification import Notification
 
-MODAL_DUID = Decimal(environ.get('MODAL_DUID'))
+MODAL_DUID = environ.get('MODAL_DUID')
 
 
 class DCA(Playbook):
@@ -23,6 +23,10 @@ class DCA(Playbook):
 
         if action == Actions.SHORT:
             raise RuntimeError('DCA Playbook is not configured to Short')
+        if not MODAL_DUID:
+            raise ValueError('MODAL_DUID env var must be present')
+
+        self.modal_duid = Decimal(MODAL_DUID)
 
     @property
     def base_currency(self) -> str:
@@ -41,7 +45,7 @@ class DCA(Playbook):
 
     async def entry(self):
         free_balance = await self.free_balance()
-        if free_balance == self.ZERO or free_balance < MODAL_DUID:
+        if free_balance == self.ZERO or free_balance < self.modal_duid:
             self.logger.info(f'Not going to enter trade, not enough balance: {free_balance}')
             return
 
@@ -55,11 +59,11 @@ class DCA(Playbook):
             return
 
         self.info(f'Successfully entered a trade')
-        self.info(f'Modal Duid: {MODAL_DUID}')
+        self.info(f'Modal Duid: {self.modal_duid}')
         self.info(f'Entry Price: {self.order_entry.get("price")}')
 
         await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
-                                                        modal_duid=str(MODAL_DUID))
+                                                        modal_duid=str(self.modal_duid))
 
     async def exit(self):
         self.logger.info('Exit not used')
