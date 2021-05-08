@@ -1,5 +1,5 @@
 #!/bin/bash -e
-source "$( poetry env list --full-path )/bin/activate"
+
 case $1 in
   "run")
     shift

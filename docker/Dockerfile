@@ -27,7 +27,8 @@ RUN set -ex \
     && pip install cython \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
     && pip install poetry numpy \
-    && poetry install \
+    && poetry export -f requirements.txt --output requirements.txt \
+    && pip install -r requirements.txt \
     \
     # clean pip cache
     && rm -rf /root/.cache/pip/* \

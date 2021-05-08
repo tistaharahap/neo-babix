@@ -33,7 +33,7 @@ def moon_phase(month, day, year):
     # light should be 100% 15 days into phase
     light = int(2 * days_into_phase * 100 / 29)
     if light > 100:
-        light = abs(light - 200);
+        light = abs(light - 200)
     date = "%d%s%d" % (day, months[month - 1], year)
 
     return date, status, light
@@ -49,4 +49,4 @@ class MoonPhaseBuy(Strategy):
                                                         year=datetime.utcnow().year)
 
     def filter(self) -> Actions:
-        return Actions.LONG if self.light == 0 else Actions.NOTHING
+        return Actions.LONG if self.light >= 96 else Actions.NOTHING
