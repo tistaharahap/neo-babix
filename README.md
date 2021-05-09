@@ -333,6 +333,10 @@ $ docker run -d --name='NeoBabix-MoonPhaseDCA' \
 
 The server is on UTC+7 timezone, hence the cron expression to run everyday at 7AM.
 
+Everytime there's a push to the `master` branch here, Github actions will package and push to Docker. The Docker Hub profile is:
+
+[https://hub.docker.com/r/tistaharahap/neobabix](https://hub.docker.com/r/tistaharahap/neobabix)
+
 ## Global Environment Variables
 
 | Name | Description |
