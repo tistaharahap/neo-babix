@@ -292,6 +292,7 @@ $ vim run-local.sh # Fill in the values
 | `NOTIFY_USING` | The notification channel used, defaults to `telegram` |
 | `LEVERAGE` | The leverage used on margin trading exchanges, do not set to trade without leverage |
 | `CRON_EXPRESSION` | Crontab like expression for the scheduler to schedule tick times |
+| `TIMEFRAME` | Timeframe used to fetch candles |
 
 ## Contributors
 
