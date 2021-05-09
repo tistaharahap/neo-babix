@@ -7,6 +7,8 @@ from neobabix.indicators.movingaverages import EMA
 
 
 class EMA528DCA(Strategy):
+    __name__ = 'EMA528DCA'
+
     def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray,
                  logger: Logger):
         super().__init__(opens, highs, lows, closes, volumes, logger)

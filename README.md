@@ -97,6 +97,25 @@ Short:
 
 Ideally this strategy needs to be paired with the `neobabix.playbooks.fractalism.Fractalism` playbook.
 
+### EMA528DCA Strategy
+
+This is strictly a DCA strategy to buy assets based on an EMA528 line.
+
+```
+Long (OR):
+    - Price is below EMA528
+    - Previous candle's price is below EMA528 and the current candle is above EMA528 
+```
+
+### MoonPhaseBuy Strategy
+
+This is strictly a DCA strategy to buy assets based on Moon Phases.
+
+```
+Long:
+    - When the moon's light intensity is more than equal than 90%.
+```
+
 ### DummyLong Strategy
 
 This strategy always returns an `Actions.LONG` signal. Useful for testing, don't use in production.
@@ -253,6 +272,21 @@ Short levels are described as:
 | `MODAL_DUID` | Required float number |
 | `PRICE_DECIMAL_PLACES` | Required integer number, adjust according exchange pair's requirement |
 
+### DCA Playbook
+
+This playbook only accept `Actions.LONG` signals, it will strictly do buys only. Perfect for people who wants to dollar 
+cost average their entries into assets.
+
+```
+Entry => Notify => Destructured
+```
+
+#### Environment Variables
+
+| Name | Description |
+| :--- | :--- |
+| `MODAL_DUID` | Required float number |
+
 ## Running
 
 ### Run Locally
@@ -263,8 +297,8 @@ Please use `virtualenv` to run locally.
 $ sudo pip install virtualenv
 $ virtualenv -p python3 env
 $ . env/bin/activate
-$ pip install numpy
-$ pip install -r requirements.txt # Install deps
+$ pip install poetry numpy cython
+$ poetry install
 ```
 
 To run locally, copy the `run-local.sh.example` to `run-local.sh`. Open the file on an editor and fill in the values.
@@ -274,6 +308,30 @@ $ cp run-local.sh.example run-local.sh
 $ chmod +x run-local.sh
 $ vim run-local.sh # Fill in the values
 ```
+
+### With Docker
+
+As an example, this is using the `MoonPhaseBuy` strategy.
+
+```shell
+$ docker run -d --name='NeoBabix-MoonPhaseDCA' \
+    -e TZ="Asia/Bangkok" \
+    -e 'TELEGRAM_TOKEN'='your_telegram_bot_token' \
+    -e 'TELEGRAM_USER_ID'='your_telegram_user_id' \
+    -e 'MODAL_DUID'='500000' \
+    -e 'TRADES_EXCHANGE'='indodax' \
+    -e 'API_KEY'='your_api_key' \
+    -e 'API_SECRET'='your_api_secret' \
+    -e 'STRATEGY'='MoonPhaseBuy' \
+    -e 'CANDLE_SYMBOL'='BTC/USD' \
+    -e 'TRADE_SYMBOL'='BTC/IDR' \
+    -e 'DEBUG'='1' \
+    -e 'PLAYBOOK'='DCA' \
+    -e 'CRON_EXPRESSION'='0 7 * * *' \
+    -e 'TIMEFRAME'='1d' 'tistaharahap/neobabix:latest'
+```
+
+The server is on UTC+7 timezone, hence the cron expression to run everyday at 7AM.
 
 ## Global Environment Variables
 

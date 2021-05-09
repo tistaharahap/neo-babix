@@ -39,6 +39,8 @@ def moon_phase(month, day, year):
 
 
 class MoonPhaseBuy(Strategy):
+    __name__ = 'MoonPhaseBuy'
+
     def __init__(self, opens: np.ndarray, highs: np.ndarray, lows: np.ndarray, closes: np.ndarray, volumes: np.ndarray,
                  logger: Logger):
         super().__init__(opens, highs, lows, closes, volumes, logger)

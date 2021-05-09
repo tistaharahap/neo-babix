@@ -14,17 +14,32 @@ export LEVERAGE="2"
 export PLAYBOOK="HitAndRun"
 export NOTIFY_USING="telegram"
 export TESTNET="1"
+export CRON_EXPRESSION="0 7 * * *"
+export TIMEFRAME="1d"
 
 # Telegram
 export TELEGRAM_TOKEN=""
 export TELEGRAM_USER_ID=""
 
 # HitAndRun Playbook
-export TAKE_PROFIT_IN_PERCENT="0.5"
-export STOP_IN_PERCENT="0.2"
-export MODAL_DUID="1000"
-export PRICE_DECIMAL_PLACES="0"
-export STOP_LIMIT_DIFF="10"
+#export TAKE_PROFIT_IN_PERCENT="0.5"
+#export STOP_IN_PERCENT="0.2"
+#export MODAL_DUID="1000"
+#export PRICE_DECIMAL_PLACES="0"
+#export STOP_LIMIT_DIFF="10"
+
+# FractalismFibo Playbook
+#export MODAL_DUID="1000"
+#export PRICE_DECIMAL_PLACES="2"
+#export EXIT_LEVEL_UP="1"
+
+# Fractalism Playbook
+#export TAKE_PROFIT_IN_PERCENT="0.5"
+#export MODAL_DUID="1000"
+#export PRICE_DECIMAL_PLACES="2"
+
+# DCA Playbook
+#export MODAL_DUID="1000"
 
 . env/bin/activate
 python app.py
