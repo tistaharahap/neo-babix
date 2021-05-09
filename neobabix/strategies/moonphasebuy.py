@@ -1,6 +1,5 @@
-from logging import Logger
 from datetime import datetime
-from os import environ
+from logging import Logger
 
 import numpy as np
 
@@ -49,4 +48,4 @@ class MoonPhaseBuy(Strategy):
                                                         year=datetime.utcnow().year)
 
     def filter(self) -> Actions:
-        return Actions.LONG if self.light >= 96 else Actions.NOTHING
+        return Actions.LONG if self.light >= 90 else Actions.NOTHING
