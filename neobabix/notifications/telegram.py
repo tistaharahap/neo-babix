@@ -29,9 +29,12 @@ class Telegram(Notification):
     async def send_message(self, message: str):
         global TELEGRAM_TOKEN, TELEGRAM_USER_ID
         if not TELEGRAM_TOKEN:
-            raise NotImplementedError('Required env var TELEGRAM_TOKEN must be set')
+            self.silent = True
         if not TELEGRAM_USER_ID:
-            raise NotImplementedError('Required env var TELEGRAM_USER_ID must be set')
+            self.silent = True
+
+        if self.silent:
+            return
 
         bot = telepot.Bot(token=TELEGRAM_TOKEN)
 

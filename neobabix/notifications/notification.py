@@ -13,6 +13,7 @@ class Notification(ABC):
             version = f.readline()
 
         self.app_name = f'NeoBabix/v{version}'
+        self.silent = False
 
     @abstractmethod
     async def send_message(self, message: str):

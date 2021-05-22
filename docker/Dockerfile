@@ -34,6 +34,8 @@ RUN set -ex \
     && rm -rf /root/.cache/pip/* \
     \
     # clean system dependencies
+    && apt-get remove -y build-essential libssl-dev libffi-dev wget \
+    && apt-get autoremove -y \
     && apt-get clean
 
 # build app source code
