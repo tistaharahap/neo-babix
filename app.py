@@ -9,7 +9,7 @@ from neobabix import tick
 
 CRON_EXPRESSION = environ.get('CRON_EXPRESSION')
 if not CRON_EXPRESSION:
-    raise RuntimeError('CRON_EXPRESSION env var must be present')
+    raise RuntimeError('CRON_EXPRESSION env var must be present in the configuration')
 
 uvloop.install()
 
