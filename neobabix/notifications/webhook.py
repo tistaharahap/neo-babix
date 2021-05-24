@@ -41,10 +41,8 @@ class Webhook(Notification):
     async def send_message(self, message: str):
         data = json.loads(message)
         if data.get('notification_type') == 'entry':
-            del data['notification_type']
             return await Webhook.post_webhook(data=data)
 
-        del data['notification_type']
         return await Webhook.post_webhook(data=data)
 
     async def send_entry_notification(self, entry_price: str, modal_duid: str):
