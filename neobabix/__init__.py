@@ -20,6 +20,7 @@ from neobabix.playbooks.fractalism import Fractalism
 from neobabix.playbooks.fractalismfibo import FractalismFibo
 from neobabix.playbooks.dca import DCA
 from neobabix.notifications.telegram import Telegram
+from neobabix.notifications.webhook import Webhook
 
 CANDLES_EXCHANGE = environ.get('CANDLES_EXCHANGE', 'bitfinex')
 TRADES_EXCHANGE = environ.get('TRADES_EXCHANGE', 'binance')
@@ -153,7 +154,8 @@ async def route_actions(action: Actions, trade_lock: Lock, testnet: bool, ohlcv:
                                testnet=testnet)
 
     notification_channels = {
-        'telegram': Telegram
+        'telegram': Telegram,
+        'webhook': Webhook
     }
     _notification = notification_channels.get(NOTIFY_USING)
     if not _notification:
