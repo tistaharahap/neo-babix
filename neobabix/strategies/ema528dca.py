@@ -17,9 +17,9 @@ class EMA528DCA(Strategy):
                           period=528)
 
     def filter(self) -> Actions:
-        before_is_under_and_now_under_528 = self.closes[-2] < self.ema528[-2] and self.closes[-1] < self.ema528[-1]
+        before_is_over_and_now_under_528 = self.closes[-2] > self.ema528[-2] and self.closes[-1] < self.ema528[-1]
         before_is_under_and_now_over_528 = self.closes[-2] < self.ema528[-2] and self.closes[-1] > self.ema528[-1]
 
-        buy_now = before_is_under_and_now_under_528 or before_is_under_and_now_over_528
+        buy_now = before_is_over_and_now_under_528 or before_is_under_and_now_over_528
 
         return Actions.LONG if buy_now else Actions.NOTHING
