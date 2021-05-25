@@ -3,7 +3,7 @@
 case $1 in
   "run")
     shift
-    python -u app.py
+    python3 -u app.py
     ;;
   *)
     echo "usage: $0 [run]"
