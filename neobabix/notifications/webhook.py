@@ -4,12 +4,11 @@ import json
 
 import aiohttp
 
+from neobabix import logger
 from neobabix.constants import USER_AGENT
-from neobabix.logger import get_logger
 from neobabix.notifications.notification import Notification
 
 WEBHOOK_URL = environ.get('WEBHOOK_URL')
-logger = get_logger()
 
 
 class Webhook(Notification):

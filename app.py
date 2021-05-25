@@ -1,19 +1,17 @@
-from os import environ
-from datetime import timezone
-
-import uvloop
 import asyncio
+from os import environ
+
+import pytz
+import uvloop
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from neobabix import tick
-from neobabix.logger import get_logger
+from neobabix import tick, logger
 
 
 def main():
     uvloop.install()
 
-    logger = get_logger()
     trade_lock = asyncio.Lock()
 
     logger.info('Environment Variables')
@@ -27,7 +25,7 @@ def main():
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(job, IntervalTrigger(days=1,
-                                           timezone=timezone.utc))
+                                           timezone=pytz.timezone('UTC')))
     scheduler.start()
     logger.info('Neobabix is running, press Ctrl+C to exit')
 
