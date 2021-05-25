@@ -1,16 +1,13 @@
 from os import environ
+from datetime import timezone
 
 import uvloop
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from neobabix import tick
 from neobabix.logger import get_logger
-
-CRON_EXPRESSION = environ.get('CRON_EXPRESSION')
-if not CRON_EXPRESSION:
-    raise RuntimeError('CRON_EXPRESSION env var must be present in the configuration')
 
 
 def main():
@@ -29,7 +26,8 @@ def main():
         await tick(trade_lock=trade_lock)
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(job, CronTrigger.from_crontab(CRON_EXPRESSION))
+    scheduler.add_job(job, IntervalTrigger(days=1,
+                                           timezone=timezone.utc))
     scheduler.start()
     logger.info('Neobabix is running, press Ctrl+C to exit')
 
