@@ -50,4 +50,6 @@ class MoonPhaseBuy(Strategy):
                                                         year=datetime.utcnow().year)
 
     def filter(self) -> Actions:
-        return Actions.LONG if self.light >= 90 else Actions.NOTHING
+        action = Actions.LONG if self.light >= 90 else Actions.NOTHING
+        self.logger.info(f'Moonphasebuy action is: {action}')
+        return action

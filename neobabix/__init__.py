@@ -33,7 +33,7 @@ TRADE_SYMBOL = environ.get('TRADE_SYMBOL', 'BTC/USD')
 TRADE_ON_CLOSE = environ.get('TRADE_ON_CLOSE', '1')
 PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
 NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
-LEVERAGE = environ.get('LEVERAGE')
+LEVERAGE = environ.get('LEVERAGE', '1')
 TESTNET = environ.get('TESTNET', '0')
 
 logger = get_logger()

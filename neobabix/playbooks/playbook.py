@@ -4,6 +4,7 @@ from asyncio import Lock
 from datetime import datetime
 from logging import Logger
 from typing import Union
+from decimal import Decimal
 
 import ccxt
 from ccxt.base.exchange import Exchange
@@ -202,6 +203,12 @@ class Playbook(ABC):
         result = self.exchange.cancel_order(id=order_id,
                                             symbol=self.symbol)
         return result
+
+    async def limit_buy_order(self, price, amount):
+        order = self.exchange.create_limit_buy_order(symbol=self.symbol,
+                                                     amount=amount,
+                                                     price=price)
+        return order
 
     async def market_buy_order(self, amount):
         if not self.exchange.has['createMarketOrder']:

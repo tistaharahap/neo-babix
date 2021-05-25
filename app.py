@@ -8,12 +8,12 @@ from apscheduler.triggers.cron import CronTrigger
 from neobabix import tick
 from neobabix.logger import get_logger
 
+CRON_EXPRESSION = environ.get('CRON_EXPRESSION')
+if not CRON_EXPRESSION:
+    raise RuntimeError('CRON_EXPRESSION env var must be present in the configuration')
+
 
 def main():
-    CRON_EXPRESSION = environ.get('CRON_EXPRESSION')
-    if not CRON_EXPRESSION:
-        raise RuntimeError('CRON_EXPRESSION env var must be present in the configuration')
-
     uvloop.install()
 
     logger = get_logger()
@@ -26,7 +26,6 @@ def main():
     logger.info('---------------------\n')
 
     async def job():
-        global trade_lock
         await tick(trade_lock=trade_lock)
 
     scheduler = AsyncIOScheduler()

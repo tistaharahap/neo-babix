@@ -18,8 +18,10 @@ class DCA(Playbook):
     ZERO = Decimal(0)
 
     def __init__(self, action: Actions, exchange: Exchange, trade_lock: Lock, logger: Logger, symbol: str,
-                 timeframe: str, notification: Notification):
-        super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, notification)
+                 timeframe: str, notification: Notification, recursive: bool = False, leverage: int = None,
+                 ohlcv: dict = None):
+        super().__init__(action, exchange, trade_lock, logger, symbol, timeframe, notification, recursive, leverage,
+                         ohlcv)
 
         if action == Actions.SHORT:
             raise RuntimeError('DCA Playbook is not configured to Short')
@@ -51,7 +53,21 @@ class DCA(Playbook):
 
         if self.action == Actions.LONG:
             self.logger.info('Entering a LONG position')
-            self.order_entry = await self.market_buy_order(amount=free_balance)
+
+            try:
+                self.order_entry = await self.market_buy_order(amount=self.modal_duid)
+            except AttributeError:
+                price = self.ohlcv.get('closes')
+                if len(price) == 0:
+                    raise ValueError('No close price detected')
+
+                marked_up = Decimal(price[0]) * Decimal(1.01)
+                self.logger.info(f'Buying using marked up price: {marked_up}')
+
+                amount = Decimal(self.modal_duid) / marked_up
+
+                self.order_entry = await self.limit_buy_order(price=marked_up,
+                                                              amount=amount)
 
     async def after_entry(self):
         if not self.order_entry:
