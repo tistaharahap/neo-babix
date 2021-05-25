@@ -31,7 +31,8 @@ RUN set -ex \
 # app deps
 RUN pip3 install --no-cache-dir cython
 RUN pip3 install poetry numpy \
-    && python3 -m poetry install \
+    && python3 -m poetry export -f requirements.txt --output requirements.txt \
+    && pip3 install -r requirements.txt \
     && rm -rf /root/.cache/pip/*
 
 # clean system dependencies
