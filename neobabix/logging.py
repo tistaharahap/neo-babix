@@ -22,3 +22,6 @@ def setup_custom_logger(name) -> logging.Logger:
 
 def get_logger() -> logging.Logger:
     return setup_custom_logger('neobabix')
+
+
+logger = get_logger()

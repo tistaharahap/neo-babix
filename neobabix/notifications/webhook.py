@@ -4,7 +4,7 @@ import json
 
 import aiohttp
 
-from neobabix import logger
+from neobabix.logging import logger
 from neobabix.constants import USER_AGENT
 from neobabix.notifications.notification import Notification
 

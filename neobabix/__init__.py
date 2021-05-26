@@ -13,7 +13,7 @@ from neobabix.strategies.buyeveryweek import BuyEveryWeek
 from neobabix.strategies.moonphasebuy import MoonPhaseBuy
 from neobabix.strategies.dummylong import DummyLong
 from neobabix.strategies.dummyshort import DummyShort
-from neobabix.logger import get_logger
+from neobabix.logging import logger
 from neobabix.constants import USER_AGENT
 from neobabix.playbooks.hitandrun import HitAndRun
 from neobabix.playbooks.fractalism import Fractalism
@@ -35,8 +35,6 @@ PLAYBOOK = environ.get('PLAYBOOK', 'HitAndRun')
 NOTIFY_USING = environ.get('NOTIFY_USING', 'telegram')
 LEVERAGE = environ.get('LEVERAGE', '1')
 TESTNET = environ.get('TESTNET', '0')
-
-logger = get_logger()
 
 
 def get_ccxt_client(exchange: str, api_key: str = None, api_secret: str = None, testnet: bool = True) -> Exchange:

@@ -24,7 +24,7 @@ def main():
         await tick(trade_lock=trade_lock)
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(job, IntervalTrigger(days=1,
+    scheduler.add_job(job, IntervalTrigger(seconds=86400,
                                            timezone=pytz.timezone('UTC')))
     scheduler.start()
     logger.info('Neobabix is running, press Ctrl+C to exit')
