@@ -60,7 +60,10 @@ class DCA(Playbook):
             self.logger.info('Entering a LONG position')
 
             try:
-                self.order_entry = await self.market_buy_order(amount=self.modal_duid)
+                price = self.ohlcv.get('closes')[-1]
+                amount = self.round_decimals_down(float(self.modal_duid / Decimal(price)))
+                self.logger.info(f'Trying to market buy at {price} with amount {amount}')
+                self.order_entry = await self.market_buy_order(amount=amount)
             except AttributeError:
                 price = self.ohlcv.get('closes')
                 if len(price) == 0:
@@ -76,6 +79,7 @@ class DCA(Playbook):
 
                 entry = await self.limit_buy_order(price=marked_up,
                                                    amount=amount)
+                print(entry)
                 self.order_entry = await self.get_order(order_id=entry.get('id'))
 
     async def after_entry(self):
