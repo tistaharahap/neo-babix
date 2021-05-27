@@ -20,12 +20,12 @@ class Notification(ABC):
         pass
 
     @abstractmethod
-    async def send_entry_notification(self, entry_price: str, modal_duid: str):
+    async def send_entry_notification(self, entry_price: str, modal_duid: str, order: dict = None):
         pass
 
     @abstractmethod
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool, pnl_in_percent: Union[int, float, str] = None):
+                                     settled: bool, pnl_in_percent: Union[int, float, str] = None, order: dict = None):
         pass
 
     def chucknorris(self):

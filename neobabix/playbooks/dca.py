@@ -51,6 +51,11 @@ class DCA(Playbook):
             self.logger.info(f'Not going to enter trade, not enough balance: {free_balance}')
             return
 
+        # Safe amount
+        amount = Decimal(self.modal_duid)
+        assert amount > self.min_amount
+        assert amount < self.max_amount
+
         if self.action == Actions.LONG:
             self.logger.info('Entering a LONG position')
 
@@ -61,10 +66,13 @@ class DCA(Playbook):
                 if len(price) == 0:
                     raise ValueError('No close price detected')
 
-                marked_up = Decimal(price[0]) * Decimal(1.01)
-                self.logger.info(f'Buying using marked up price: {marked_up}')
+                marked_up = self.round_decimals_down(number=float(Decimal(price[0]) * Decimal(1.01)),
+                                                     decimals=self.price_precision)
+                self.logger.info(f'Buying using marked up price: {marked_up} / Precision: {self.price_precision}')
 
-                amount = Decimal(self.modal_duid) / marked_up
+                amount = self.round_decimals_down(number=float(Decimal(amount) / Decimal(marked_up)),
+                                                  decimals=self.amount_precision)
+                self.logger.info(f'Amount: {amount:.8f} / Precision: {self.amount_precision}')
 
                 self.order_entry = await self.limit_buy_order(price=marked_up,
                                                               amount=amount)
@@ -79,7 +87,8 @@ class DCA(Playbook):
         self.info(f'Entry Price: {self.order_entry.get("price")}')
 
         await self.notification.send_entry_notification(entry_price=str(self.order_entry.get('price')),
-                                                        modal_duid=str(self.modal_duid))
+                                                        modal_duid=str(self.modal_duid),
+                                                        order=self.order_entry)
 
     async def exit(self):
         self.logger.info('Exit not used')

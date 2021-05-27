@@ -1,4 +1,5 @@
 import asyncio
+import math
 from abc import ABC, abstractmethod
 from asyncio import Lock
 from datetime import datetime
@@ -8,7 +9,9 @@ from decimal import Decimal
 
 import ccxt
 from ccxt.base.exchange import Exchange
+from functional import seq
 
+from neobabix.models.ccxt import CurrencyInfo, PrecisionField
 from neobabix.notifications.notification import Notification
 from neobabix.strategies.strategy import Actions
 
@@ -43,6 +46,15 @@ class Playbook(ABC):
         self.leverage = leverage
         self.notification = notification
         self.ohlcv = ohlcv
+
+        # Currency Info
+        market_info = seq(self.exchange.fetch_markets()) \
+            .filter(lambda x: x.get('symbol') == symbol) \
+            .map(lambda x: CurrencyInfo(**x)) \
+            .to_list()
+        if len(market_info) == 0:
+            raise NotImplementedError('Market info is not implemented in this exchange, bailing')
+        self.currency_info: CurrencyInfo = market_info[0]
 
         # Orders
         self.order_entry = {}
@@ -92,6 +104,41 @@ class Playbook(ABC):
         return float(self.order_entry.get('price'))
 
     @property
+    def price_precision(self) -> int:
+        if type(self.currency_info.precision.price) == int:
+            return self.currency_info.precision.price
+
+        sp = str(self.currency_info.precision.price).split('.')
+        if len(sp) != 2:
+            raise ValueError('Unrecognized precision given from the exchange')
+
+        return len(sp[1])
+
+    @property
+    def amount_precision(self) -> int:
+        return int(self.currency_info.precision.amount)
+
+    @property
+    def min_price(self) -> Decimal:
+        return Decimal(self.currency_info.limits.price.min)
+
+    @property
+    def max_price(self) -> Decimal:
+        return Decimal(self.currency_info.limits.price.max)
+
+    @property
+    def min_amount(self) -> Decimal:
+        if not self.currency_info.limits.amount.min:
+            return Decimal(0)
+        return Decimal(self.currency_info.limits.amount.min)
+
+    @property
+    def max_amount(self) -> Decimal:
+        if not self.currency_info.limits.amount.max:
+            return Decimal(10**9)
+        return Decimal(self.currency_info.limits.amount.max)
+
+    @property
     @abstractmethod
     def exit_price(self):
         return None
@@ -105,6 +152,18 @@ class Playbook(ABC):
     @abstractmethod
     def stop_action_price(self):
         return None
+
+    @staticmethod
+    def round_decimals_down(number: float, decimals: int = 8):
+        if not isinstance(decimals, int):
+            raise TypeError("decimal places must be an integer")
+        elif decimals < 0:
+            raise ValueError("decimal places has to be 0 or more")
+        elif decimals == 0:
+            return math.floor(number)
+
+        factor = 10 ** decimals
+        return math.floor(number * factor) / factor
 
     async def notify(self, message):
         # TODO: Notification mechanism to notify for significant events

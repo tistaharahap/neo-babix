@@ -44,16 +44,17 @@ class Webhook(Notification):
 
         return await Webhook.post_webhook(data=data)
 
-    async def send_entry_notification(self, entry_price: str, modal_duid: str):
+    async def send_entry_notification(self, entry_price: str, modal_duid: str, order: dict = None):
         message = json.dumps({
             'entry_price': entry_price,
             'modal_duid': modal_duid,
-            'notification_type': 'entry'
+            'notification_type': 'entry',
+            'order': order
         })
         await self.send_message(message=message)
 
     async def send_exit_notification(self, entry_price: str, modal_duid: str, exit_price: str, stop_limit_price: str,
-                                     settled: bool, pnl_in_percent: Union[int, float, str] = None):
+                                     settled: bool, pnl_in_percent: Union[int, float, str] = None, order: dict = None):
         message = json.dumps({
             'entry_price': entry_price,
             'modal_duid': modal_duid,
@@ -61,6 +62,7 @@ class Webhook(Notification):
             'stop_limit_price': stop_limit_price,
             'settled': settled,
             'pnl_in_percent': pnl_in_percent,
-            'notification_type': 'exit'
+            'notification_type': 'exit',
+            'order': order
         })
         await self.send_message(message=message)

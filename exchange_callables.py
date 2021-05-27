@@ -1,4 +1,5 @@
 import ccxt
+import json
 
 
 def show_methods(exc):
@@ -7,6 +8,8 @@ def show_methods(exc):
         print(method)
 
 # Bybit
-bybit = ccxt.bybit()
-show_methods(bybit)
+indodax = ccxt.indodax()
+# show_methods(bybit)
 
+markets = indodax.fetch_markets()
+print(json.dumps(markets))
