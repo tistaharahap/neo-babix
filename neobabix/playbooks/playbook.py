@@ -373,3 +373,7 @@ class Playbook(ABC):
                                            stop_price=stop_price,
                                            price=stop_action_price,
                                            base_price=base_price)
+
+    async def get_order(self, order_id: str):
+        return self.exchange.fetch_order(id=order_id,
+                                         symbol=self.symbol)

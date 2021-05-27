@@ -74,8 +74,9 @@ class DCA(Playbook):
                                                   decimals=self.amount_precision)
                 self.logger.info(f'Amount: {amount:.8f} / Precision: {self.amount_precision}')
 
-                self.order_entry = await self.limit_buy_order(price=marked_up,
-                                                              amount=amount)
+                entry = await self.limit_buy_order(price=marked_up,
+                                                   amount=amount)
+                self.order_entry = await self.get_order(order_id=entry.get('id'))
 
     async def after_entry(self):
         if not self.order_entry:
