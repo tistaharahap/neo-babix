@@ -25,8 +25,10 @@ def main():
     async def job():
         try:
             await tick(trade_lock=trade_lock)
-        except Exception:
+        except Exception as exc:
             if trade_lock.locked() and RELEASE_LOCK_ON_ERROR:
+                logger.info(f'Exception happened on tick, set to release lock.')
+                logger.error(f'{exc}')
                 trade_lock.release()
 
     scheduler = AsyncIOScheduler()
