@@ -8,6 +8,8 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from neobabix import tick, logger
 
+RELEASE_LOCK_ON_ERROR = True if environ.get('RELEASE_LOCK_ON_ERROR') == '1' else False
+
 
 def main():
     uvloop.install()
@@ -21,7 +23,11 @@ def main():
     logger.info('---------------------\n')
 
     async def job():
-        await tick(trade_lock=trade_lock)
+        try:
+            await tick(trade_lock=trade_lock)
+        except Exception:
+            if trade_lock.locked() and RELEASE_LOCK_ON_ERROR:
+                trade_lock.release()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(job, IntervalTrigger(seconds=86400,
