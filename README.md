@@ -355,6 +355,7 @@ Everytime there's a push to the `master` branch here, Github actions will packag
 | `LEVERAGE` | The leverage used on margin trading exchanges, do not set to trade without leverage |
 | `CRON_EXPRESSION` | Crontab like expression for the scheduler to schedule tick times |
 | `TIMEFRAME` | Timeframe used to fetch candles |
+| `RELEASE_LOCK_ON_ERROR` | If there's an exception during a tick, this will release any trading lock if set to `1` |
 
 ## Contributors
 
